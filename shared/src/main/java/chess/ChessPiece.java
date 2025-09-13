@@ -2,6 +2,8 @@ package chess;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
+
 /**
  * Represents a single chess piece
  * <p>
@@ -9,8 +11,27 @@ import java.util.List;
  * signature of the existing methods.
  */
 public class ChessPiece {
+    public PieceType type;
+    public ChessGame.TeamColor pieceColor;
 
     public ChessPiece(ChessGame.TeamColor pieceColor, ChessPiece.PieceType type) {
+        this.pieceColor = pieceColor;
+        this.type = type;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        ChessPiece that = (ChessPiece) o;
+        return type == that.type && pieceColor == that.pieceColor;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(type, pieceColor);
     }
 
     /**
@@ -29,14 +50,14 @@ public class ChessPiece {
      * @return Which team this chess piece belongs to
      */
     public ChessGame.TeamColor getTeamColor() {
-        throw new RuntimeException("Not implemented");
+        return pieceColor;
     }
 
     /**
      * @return which type of chess piece this piece is
      */
     public PieceType getPieceType() {
-        throw new RuntimeException("Not implemented");
+        return this.type;
     }
 
     /**
@@ -48,8 +69,10 @@ public class ChessPiece {
      */
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
         ChessPiece piece = board.getPiece(myPosition);
-        if (piece.getPieceType() == PieceType.BISHOP):
-            return PieceMovesCalculator.Bishop.get_moves()
+        PieceMovesCalculator movesCalculator = new PieceMovesCalculator(board, myPosition);
+        if (piece.getPieceType() == PieceType.BISHOP) {
+            return movesCalculator.calculateDiagonalMoves(board, myPosition);
+        }
         return List.of();
     }
 }
