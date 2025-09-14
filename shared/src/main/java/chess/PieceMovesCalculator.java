@@ -15,10 +15,12 @@ public class PieceMovesCalculator {
         int[] rows;
         int[] cols;
         ArrayList<ChessMove> diagonalMoves;
+        ArrayList<ChessPosition> piecesOnDiagonals;
 
         numRows = 8;
         numCols = 8;
         diagonalMoves = new ArrayList<ChessMove>();
+        piecesOnDiagonals = new ArrayList<ChessPosition>();
         rows = fillGridOptions(1, numRows);
         cols = fillGridOptions(1, numCols);
 
@@ -34,10 +36,43 @@ public class PieceMovesCalculator {
                     continue; // the current col cannot be a diagonal move
                 }
                 if (Math.abs(position.getRow() - row) == Math.abs(position.getColumn() - col)){
-                    // then (row, col) is on a diagonal from the current position
-                    diagonalMoves.add(new ChessMove( position, new ChessPosition(row, col),  null));
+                    // IE if (row, col) is on a diagonal from the current position
+                    ChessPosition nextPosition = new ChessPosition(row, col);
+
+                    if (board.getPiece( nextPosition ) != null &&  board.getPiece( nextPosition ).getTeamColor() == board.getPiece( position ).getTeamColor()){
+                        // friendly piece, cannot capture nor pass
+                        piecesOnDiagonals.add( nextPosition );
+                        continue;  // keep searching columns across the row
+                    }
+
+                    diagonalMoves.add(new ChessMove( position, nextPosition,  null));
+
+                    // enemy piece, can capture but cannot pass
+                    if (board.getPiece( nextPosition ) != null && board.getPiece( nextPosition ).getTeamColor() != board.getPiece( position ).getTeamColor()) {
+                        piecesOnDiagonals.add( nextPosition );
+                        continue; // keep searching columns across the row
+                    }
                 }
 
+            }
+        }
+        // remove spaces that are on the diagonal but which would pass over an occupied square
+        for (ChessPosition limit:piecesOnDiagonals){
+            // up and to the right of position
+            if ((position.getRow() - limit.getRow() < 0) && (position.getColumn() - limit.getColumn() < 0)) {
+                diagonalMoves.removeIf( p -> p.getEndPosition().getRow() > limit.getRow() && p.getEndPosition().getColumn() > limit.getColumn() );
+            }
+            // up and to the left
+            if ((position.getRow() - limit.getRow() < 0) && (position.getColumn() - limit.getColumn() > 0 )) {
+                diagonalMoves.removeIf( p -> p.getEndPosition().getRow() > limit.getRow() && p.getEndPosition().getColumn() < limit.getColumn() );
+            }
+            // down and to the left
+            if ((position.getRow() - limit.getRow() > 0) && (position.getColumn() - limit.getColumn() > 0)) {
+                diagonalMoves.removeIf(p -> p.getEndPosition().getRow() < limit.getRow() && p.getEndPosition().getColumn() < limit.getColumn());
+            }
+            // down and to the right
+            if ((position.getRow() - limit.getRow() > 0) && (position.getColumn() - limit.getColumn() < 0)) {
+                diagonalMoves.removeIf(p->p.getEndPosition().getRow() < limit.getRow() && p.getEndPosition().getColumn() > limit.getColumn());
             }
         }
         return diagonalMoves;
