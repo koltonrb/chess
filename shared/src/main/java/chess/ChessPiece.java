@@ -73,6 +73,9 @@ public class ChessPiece {
         if (piece.getPieceType() == PieceType.BISHOP) {
             return movesCalculator.calculateDiagonalMoves(board, myPosition);
         }
+        if (piece.getPieceType() == PieceType.ROOK){
+            return movesCalculator.calculatePerpendicularMoves(board, myPosition);
+        }
         return List.of();
     }
 }

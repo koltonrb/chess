@@ -39,7 +39,7 @@ public class PieceMovesCalculator {
                     // IE if (row, col) is on a diagonal from the current position
                     ChessPosition nextPosition = new ChessPosition(row, col);
 
-                    if (board.getPiece( nextPosition ) != null &&  board.getPiece( nextPosition ).getTeamColor() == board.getPiece( position ).getTeamColor()){
+                    if (board.getPiece( nextPosition ) != null && board.getPiece( nextPosition ).getTeamColor() == board.getPiece( position ).getTeamColor()){
                         // friendly piece, cannot capture nor pass
                         piecesOnDiagonals.add( nextPosition );
                         continue;  // keep searching columns across the row
@@ -47,8 +47,8 @@ public class PieceMovesCalculator {
 
                     diagonalMoves.add(new ChessMove( position, nextPosition,  null));
 
-                    // enemy piece, can capture but cannot pass
                     if (board.getPiece( nextPosition ) != null && board.getPiece( nextPosition ).getTeamColor() != board.getPiece( position ).getTeamColor()) {
+                        // enemy piece, can capture but cannot pass
                         piecesOnDiagonals.add( nextPosition );
                         continue; // keep searching columns across the row
                     }
@@ -78,6 +78,92 @@ public class PieceMovesCalculator {
         return diagonalMoves;
     }
 
+    public ArrayList<ChessMove> calculatePerpendicularMoves(ChessBoard board, ChessPosition position) {
+
+        int numRows;
+        int numCols;
+        int[] rows;
+        int [] cols;
+        ArrayList<ChessMove>  perpendicularMoves;
+        ArrayList<ChessPosition> piecesOnPerpendicular;
+
+        numRows = 8;
+        numCols = 8;
+        perpendicularMoves = new ArrayList<ChessMove>();
+        piecesOnPerpendicular = new ArrayList<ChessPosition>();
+        rows = fillGridOptions(1, numRows);
+        cols = fillGridOptions(1, numCols);
+
+        // make a list of ordered pairs (row, col) to consider for perpendicular moves
+        for (int i = 0; i < numRows; i++) {
+            // consider moves for every row on column position.getColumn()
+            int row = rows[i];
+            if (row == position.getRow()) {
+                continue; //the current position cannot be a move; we will consider moving along this row next
+            }
+            ChessPosition nextPosition = new ChessPosition(row, position.getColumn());
+            if (board.getPiece(nextPosition) != null && board.getPiece(nextPosition).getTeamColor() == board.getPiece(position).getTeamColor()) {
+                // friendly piece, cannot capture nor pass
+                piecesOnPerpendicular.add(nextPosition);
+                continue;  // keep searching the other rows across the column
+            }
+
+            perpendicularMoves.add(new ChessMove(position, nextPosition, null));
+
+            if (board.getPiece(nextPosition) != null && board.getPiece(nextPosition).getTeamColor() != board.getPiece(position).getTeamColor()) {
+                // enemy piece, can capture but cannot pass
+                piecesOnPerpendicular.add(nextPosition);
+                continue; // keep searching rows across the column
+            }
+        }
+
+        for ( int j = 0; j < numRows; j++){
+            // consider moves for every row on column position.getRow()
+            int col = cols[j];
+            if (col == position.getColumn()){
+                continue; // current position cannot be a move; we considered moving along this column above
+            }
+            ChessPosition nextPosition = new ChessPosition(position.getRow(), col);
+            if ((board.getPiece( nextPosition ) != null) && (board.getPiece( nextPosition ).getTeamColor() == board.getPiece( position ).getTeamColor())){
+                // friendly piece, cannot capture nor pass
+                piecesOnPerpendicular.add( nextPosition );
+                continue;  // keep searching the other columns across the row
+            }
+            perpendicularMoves.add(new ChessMove( position, nextPosition, null));
+
+            if ((board.getPiece( nextPosition) != null) && (board.getPiece( nextPosition ).getTeamColor() != board.getPiece( position ).getTeamColor())){
+                // enemy piece, can capture but cannot pass
+                piecesOnPerpendicular.add( nextPosition );
+                continue; //keep searching columns across the row
+            }
+
+        }
+        // remove spaces that are on the perpendicular but which would pass over an occupied square
+        for (ChessPosition limit:piecesOnPerpendicular) {
+            // limit above position
+            if ((position.getColumn() == limit.getColumn()) && (position.getRow() < limit.getRow())) {
+                perpendicularMoves.removeIf(p -> p.getEndPosition().getRow() > limit.getRow());
+            }
+            // limit below position
+            if ((position.getColumn() == limit.getColumn()) && (position.getRow() > limit.getRow())) {
+                perpendicularMoves.removeIf(p -> p.getEndPosition().getRow() < limit.getRow());
+            }
+            // limit left of position
+            if ((position.getRow() == limit.getRow()) && (position.getColumn() > limit.getColumn())) {
+                perpendicularMoves.removeIf(p -> p.getEndPosition().getColumn() < limit.getColumn());
+            }
+            // limit right of position
+            if ((position.getRow() == limit.getRow()) && (position.getColumn() < limit.getColumn())) {
+                perpendicularMoves.removeIf(p -> p.getEndPosition().getColumn() > limit.getColumn());
+            }
+        }
+        return perpendicularMoves;
+    }
+
+    /*
+    fillGridOptions returns an array of possible integer values representing either the vertical
+    or the horizontal dimension of the ChessBoard
+     */
     private int[] fillGridOptions(int min, int max) {
         int[] vals;
 
