@@ -1,5 +1,6 @@
 package chess;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -75,6 +76,12 @@ public class ChessPiece {
         }
         if (piece.getPieceType() == PieceType.ROOK){
             return movesCalculator.calculatePerpendicularMoves(board, myPosition);
+        }
+        if (piece.getPieceType() == PieceType.QUEEN){
+            ArrayList<ChessMove> diagonalMoves = movesCalculator.calculateDiagonalMoves(board, myPosition);
+            ArrayList<ChessMove> perpendicularMoves = movesCalculator.calculatePerpendicularMoves(board, myPosition);
+            diagonalMoves.addAll(perpendicularMoves);
+            return diagonalMoves; // now houses both diagonal and perpendicular moves
         }
         return List.of();
     }
