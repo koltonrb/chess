@@ -83,6 +83,14 @@ public class ChessPiece {
             diagonalMoves.addAll(perpendicularMoves);
             return diagonalMoves; // now houses both diagonal and perpendicular moves
         }
+        if (piece.getPieceType() == PieceType.KING){
+            ArrayList<ChessMove> diagonalMoves = movesCalculator.calculateDiagonalMoves(board, myPosition);  // unrestricted distance
+            ArrayList<ChessMove> perpendicularMoves = movesCalculator.calculatePerpendicularMoves(board, myPosition); // unrestricted distance
+            diagonalMoves.addAll(perpendicularMoves); // unrestricted distance
+            // now restrict to a 1-norm distance of 1
+            diagonalMoves.removeIf(p->((Math.abs(p.getEndPosition().getRow() - myPosition.getRow()) > 1)  || (Math.abs(p.getEndPosition().getColumn() - myPosition.getColumn()) > 1)));
+            return diagonalMoves;
+        }
         return List.of();
     }
 }
