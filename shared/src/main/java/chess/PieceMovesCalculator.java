@@ -176,4 +176,77 @@ public class PieceMovesCalculator {
         return vals;
     }
 
+    public ArrayList<ChessMove> calculatePawnMoves(ChessBoard board, ChessPosition position){
+        ArrayList<ChessMove> possibleMoves = new ArrayList<ChessMove>();
+        if ( board.getPiece( position ).getTeamColor() == ChessGame.TeamColor.WHITE){
+            // by convention (see PawnMoveTests), WHITE begins on rows 1 and 2
+            if (position.getRow() == 2){
+                // can optionally move two spaces forward
+                possibleMoves.add( new ChessMove( position, new ChessPosition( position.getRow() + 2, position.getColumn()), null));
+            }
+            // now determine if move will be eligible for a promotion
+            ChessPiece.PieceType promoPiece = null;
+            if ( position.getRow() + 1 == 8){
+                promoPiece = ChessPiece.PieceType.QUEEN;  // TODO: this promotion piece will be a selection?
+            }
+            // can optionally move one space forward
+            possibleMoves.add( new ChessMove( position, new ChessPosition( position.getRow() + 1, position.getColumn()), promoPiece));
+            // can capture diagonally
+            if ((position.getRow() + 1 < 8) && (position.getColumn() - 1 > 1) ){
+                ChessPosition upperLeft = new ChessPosition( position.getRow() + 1, position.getColumn() - 1);
+                // IE if one space up and left exists on chess board
+                if (board.getPiece( upperLeft ).getTeamColor() == ChessGame.TeamColor.BLACK ){
+                    // enemy piece, can capture
+                    possibleMoves.add( new ChessMove(position, upperLeft, promoPiece ));
+                }
+                // else if a friendly piece is at upperLeft or if empty, do nothing
+            }
+            if ((position.getRow() + 1 < 8) && (position.getColumn() + 1 < 8) ){
+                ChessPosition upperRight = new ChessPosition( position.getRow() + 1, position.getColumn() + 1);
+                // IE if one space up and left exists on the chess board
+                if (board.getPiece( upperRight ).getTeamColor() == ChessGame.TeamColor.BLACK ){
+                    // enemy piece, can capture
+                    possibleMoves.add( new ChessMove( position, upperRight, promoPiece) );
+                }
+                // else if a friendly piece is at upperRight or if empty, do nothing
+            }
+            return possibleMoves;
+        }
+        if ( board.getPiece( position ).getTeamColor() == ChessGame.TeamColor.BLACK ){
+            // by convention (see PawnMoveTests), BLACK begins on rows 8 and 7
+            if (position.getRow() == 7 ){
+                // can optionally move two spaces forward
+                possibleMoves.add( new ChessMove( position, new ChessPosition( position.getRow() - 2, position.getColumn()), null));
+            }
+            // now determine if move will be eligible for a promotion
+            ChessPiece.PieceType promoPiece = null;
+            if ( position.getRow() - 1 == 1){
+                promoPiece = ChessPiece.PieceType.QUEEN;  // TODO: this promotion piece will be a selection?
+            }
+            // can optionally move one space forward
+            possibleMoves.add( new ChessMove( position, new ChessPosition( position.getRow() - 1, position.getColumn()), promoPiece));
+            // can capture diagonally
+            if ((position.getRow() - 1 > 1) && (position.getColumn() - 1 > 1)){
+                ChessPosition lowerLeft = new ChessPosition(position.getRow() - 1, position.getColumn() - 1);
+                // IE if one space down and left exists on the chess board
+                if (board.getPiece( lowerLeft ).getTeamColor() == ChessGame.TeamColor.WHITE){
+                    // enemy piece, can capture
+                    possibleMoves.add( new ChessMove( position, lowerLeft, promoPiece));
+                }
+                // else if a friendly piece is at lowerLeft or if empty, do nothing;
+            }
+            if ((position.getRow() - 1 > 1) && (position.getColumn() + 1 < 8)){
+                ChessPosition lowerRight = new ChessPosition(position.getRow() -1, position.getColumn() + 1);
+                // IE if one space down and right exists on the chess board
+                if (board.getPiece( lowerRight ).getTeamColor() == ChessGame.TeamColor.WHITE){
+                    // enemy piece, can capture
+                    possibleMoves.add( new ChessMove( position, lowerRight, promoPiece));
+                }
+                // else if a friendly piece is at lowerRight or if empty, do nothing
+            }
+            return possibleMoves;
+        }
+        return null;
+    }
+
 }
