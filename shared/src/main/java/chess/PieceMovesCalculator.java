@@ -178,9 +178,21 @@ public class PieceMovesCalculator {
 
     public ArrayList<ChessMove> calculatePawnMoves(ChessBoard board, ChessPosition position){
         ArrayList<ChessMove> possibleMoves = new ArrayList<ChessMove>();
+        boolean blockedAtOne = new Boolean(false);
+        boolean blockedAtTwo = new Boolean(false);
+
         if ( board.getPiece( position ).getTeamColor() == ChessGame.TeamColor.WHITE){
             // by convention (see PawnMoveTests), WHITE begins on rows 1 and 2
-            if (position.getRow() == 2){
+            // check if at edge and if blocked
+            ChessPosition oneSpace = new ChessPosition( position.getRow() + 1, position.getColumn() );
+            if ((oneSpace.getRow() < 8) && (board.getPiece(oneSpace) != null)) {
+                blockedAtOne = true;
+            }
+            ChessPosition twoSpaces = new ChessPosition( position.getRow() + 2, position.getColumn() );
+            if (board.getPiece(twoSpaces) != null){
+                blockedAtTwo = true;
+            }
+            if ((position.getRow() == 2) && (!blockedAtOne) && !(blockedAtTwo)){
                 // can optionally move two spaces forward
                 possibleMoves.add( new ChessMove( position, new ChessPosition( position.getRow() + 2, position.getColumn()), null));
             }
@@ -190,7 +202,10 @@ public class PieceMovesCalculator {
                 promoPiece = ChessPiece.PieceType.QUEEN;  // TODO: this promotion piece will be a selection?
             }
             // can optionally move one space forward
-            possibleMoves.add( new ChessMove( position, new ChessPosition( position.getRow() + 1, position.getColumn()), promoPiece));
+            // if NOT blocked and NOT at edge
+            if ((!blockedAtOne) && (position.getRow() + 1 < 8)){
+                possibleMoves.add(new ChessMove(position, new ChessPosition(position.getRow() + 1, position.getColumn()), promoPiece));
+            }
             // can capture diagonally
             if ((position.getRow() + 1 < 8) && (position.getColumn() - 1 > 1) ){
                 ChessPosition upperLeft = new ChessPosition( position.getRow() + 1, position.getColumn() - 1);
@@ -214,8 +229,15 @@ public class PieceMovesCalculator {
         }
         if ( board.getPiece( position ).getTeamColor() == ChessGame.TeamColor.BLACK ){
             // by convention (see PawnMoveTests), BLACK begins on rows 8 and 7
-            if (position.getRow() == 7 ){
+            // check if at edge and if blocked
+            ChessPosition oneSpace = new ChessPosition( position.getRow() - 1, position.getColumn());
+            if ((oneSpace.getRow() > 1 ) && (board.getPiece( oneSpace ) != null)) {
+                blockedAtOne = true;
+            }
+            ChessPosition twoSpaces = new ChessPosition( position.getRow() - 2, position.getColumn());
+            if ((position.getRow() == 7 ) && (!blockedAtOne) && (!blockedAtTwo)){
                 // can optionally move two spaces forward
+                // TODO: need to check if this or the first space is occupied
                 possibleMoves.add( new ChessMove( position, new ChessPosition( position.getRow() - 2, position.getColumn()), null));
             }
             // now determine if move will be eligible for a promotion
@@ -224,7 +246,11 @@ public class PieceMovesCalculator {
                 promoPiece = ChessPiece.PieceType.QUEEN;  // TODO: this promotion piece will be a selection?
             }
             // can optionally move one space forward
+            // if NOT blocked and NOT at edge
+            // TODO: need to check if this or the first space is occupied
+            if ((!blockedAtOne) && (position.getRow() - 1 > 1)){
             possibleMoves.add( new ChessMove( position, new ChessPosition( position.getRow() - 1, position.getColumn()), promoPiece));
+            }
             // can capture diagonally
             if ((position.getRow() - 1 > 1) && (position.getColumn() - 1 > 1)){
                 ChessPosition lowerLeft = new ChessPosition(position.getRow() - 1, position.getColumn() - 1);

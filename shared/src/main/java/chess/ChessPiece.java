@@ -51,7 +51,7 @@ public class ChessPiece {
      * @return Which team this chess piece belongs to
      */
     public ChessGame.TeamColor getTeamColor() {
-        return pieceColor;
+        return this.pieceColor;
     }
 
     /**
@@ -90,6 +90,9 @@ public class ChessPiece {
             // now restrict to a 1-norm distance of 1
             diagonalMoves.removeIf(p->((Math.abs(p.getEndPosition().getRow() - myPosition.getRow()) > 1)  || (Math.abs(p.getEndPosition().getColumn() - myPosition.getColumn()) > 1)));
             return diagonalMoves;
+        }
+        if (piece.getPieceType() == PieceType.PAWN){
+            return movesCalculator.calculatePawnMoves(board, myPosition);
         }
         return List.of();
     }
