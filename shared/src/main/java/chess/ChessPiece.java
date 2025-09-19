@@ -94,6 +94,9 @@ public class ChessPiece {
         if (piece.getPieceType() == PieceType.PAWN){
             return movesCalculator.calculatePawnMoves(board, myPosition);
         }
+        if (piece.getPieceType() == PieceType.KNIGHT){
+            return movesCalculator.calculateKnightMoves(board, myPosition);
+        }
         return List.of();
     }
 }

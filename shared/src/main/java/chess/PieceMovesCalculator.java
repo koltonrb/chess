@@ -227,7 +227,6 @@ public class PieceMovesCalculator {
                 }
                 // else if a friendly piece is at upperRight or if empty, do nothing
             }
-//            return possibleMoves;
         }
         if ( board.getPiece( position ).getTeamColor() == ChessGame.TeamColor.BLACK ){
             // by convention (see PawnMoveTests), BLACK begins on rows 8 and 7
@@ -242,12 +241,10 @@ public class PieceMovesCalculator {
             }
             if ((position.getRow() == 7 ) && (!blockedAtOne) && (!blockedAtTwo)){
                 // can optionally move two spaces forward
-                // TODO: need to check if this or the first space is occupied
                 possibleMoves.add( new ChessMove( position, new ChessPosition( position.getRow() - 2, position.getColumn()), null));
             }
             // can optionally move one space forward
             // if NOT blocked and NOT at edge
-            // TODO: need to check if this or the first space is occupied
             if ((!blockedAtOne) && (position.getRow() - 1 >= 1)){
             possibleMoves.add( new ChessMove( position, new ChessPosition( position.getRow() - 1, position.getColumn()), null));
             }
@@ -270,7 +267,6 @@ public class PieceMovesCalculator {
                 }
                 // else if a friendly piece is at lowerRight or if empty, do nothing
             }
-//            return possibleMoves;
         }
         // now make sure to duplicate moves that will result in a promotion
         // move (startPosition, endPosition, QUEEN) != (startPosition, endPosition, ROOK), e.g.
@@ -286,6 +282,40 @@ public class PieceMovesCalculator {
             }
         }
         return postPromoMoves;
+    }
+
+    public ArrayList<ChessMove> calculateKnightMoves(ChessBoard board, ChessPosition position){
+        ArrayList<ChessMove> possibleMoves = new ArrayList<ChessMove>();
+
+        ChessPosition upLeft = new ChessPosition( position.getRow() + 2, position.getColumn() - 1);
+        ChessPosition leftUp = new ChessPosition( position.getRow() + 1, position.getColumn() - 2);
+        ChessPosition leftDown = new ChessPosition( position.getRow() - 1, position.getColumn() - 2 );
+        ChessPosition downLeft = new ChessPosition( position.getRow() - 2, position.getColumn() - 1);
+        ChessPosition downRight = new ChessPosition( position.getRow() - 2, position.getColumn() + 1);
+        ChessPosition rightDown = new ChessPosition( position.getRow() - 1 , position.getColumn() + 2);
+        ChessPosition rightUp = new ChessPosition( position.getRow() + 1, position.getColumn() + 2);
+        ChessPosition upRight = new ChessPosition( position.getRow() + 2, position.getColumn() + 1);
+
+        possibleMoves.add( new ChessMove(position, upLeft, null));
+        possibleMoves.add( new ChessMove(position, leftUp, null));
+        possibleMoves.add( new ChessMove(position, leftDown, null));
+        possibleMoves.add( new ChessMove(position, downLeft, null));
+        possibleMoves.add( new ChessMove(position, downLeft, null));
+        possibleMoves.add( new ChessMove(position, downRight, null));
+        possibleMoves.add( new ChessMove(position, rightDown, null));
+        possibleMoves.add( new ChessMove(position, rightUp, null));
+        possibleMoves.add( new ChessMove(position, upRight, null));
+
+        possibleMoves.removeIf(m->m.getEndPosition().getRow() < 1);
+        possibleMoves.removeIf(m->m.getEndPosition().getRow() > 8);
+        possibleMoves.removeIf(m->m.getEndPosition().getColumn() < 1);
+        possibleMoves.removeIf(m->m.getEndPosition().getColumn() > 8);
+
+        possibleMoves.removeIf(m->((board.getPiece(m.getEndPosition()) != null) && (board.getPiece(m.getEndPosition()).getTeamColor() == board.getPiece( position ).getTeamColor())));
+
+        return possibleMoves;
+
+
     }
 
 }
