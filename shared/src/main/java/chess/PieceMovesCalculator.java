@@ -300,17 +300,18 @@ public class PieceMovesCalculator {
         possibleMoves.add( new ChessMove(position, leftUp, null));
         possibleMoves.add( new ChessMove(position, leftDown, null));
         possibleMoves.add( new ChessMove(position, downLeft, null));
-        possibleMoves.add( new ChessMove(position, downLeft, null));
         possibleMoves.add( new ChessMove(position, downRight, null));
         possibleMoves.add( new ChessMove(position, rightDown, null));
         possibleMoves.add( new ChessMove(position, rightUp, null));
         possibleMoves.add( new ChessMove(position, upRight, null));
 
+        // check that end positions are not out of bounds
         possibleMoves.removeIf(m->m.getEndPosition().getRow() < 1);
         possibleMoves.removeIf(m->m.getEndPosition().getRow() > 8);
         possibleMoves.removeIf(m->m.getEndPosition().getColumn() < 1);
         possibleMoves.removeIf(m->m.getEndPosition().getColumn() > 8);
 
+        // check that end positions are not occupied by a friendly piece
         possibleMoves.removeIf(m->((board.getPiece(m.getEndPosition()) != null) && (board.getPiece(m.getEndPosition()).getTeamColor() == board.getPiece( position ).getTeamColor())));
 
         return possibleMoves;
