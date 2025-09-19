@@ -1,6 +1,7 @@
 package chess;
 
 import java.util.Arrays;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -43,7 +44,31 @@ public class ChessBoard {
      * (How the game of chess normally starts)
      */
     public void resetBoard() {
-        throw new RuntimeException("Not implemented");
+        // set up the black pieces
+        squares[7][0] = new ChessPiece( ChessGame.TeamColor.BLACK, ChessPiece.PieceType.ROOK);
+        squares[7][1] = new ChessPiece( ChessGame.TeamColor.BLACK, ChessPiece.PieceType.KNIGHT);
+        squares[7][2] = new ChessPiece( ChessGame.TeamColor.BLACK, ChessPiece.PieceType.BISHOP);
+        squares[7][3] = new ChessPiece( ChessGame.TeamColor.BLACK, ChessPiece.PieceType.QUEEN);
+        squares[7][4] = new ChessPiece( ChessGame.TeamColor.BLACK, ChessPiece.PieceType.KING);
+        squares[7][5] = new ChessPiece( ChessGame.TeamColor.BLACK, ChessPiece.PieceType.BISHOP);
+        squares[7][6] = new ChessPiece( ChessGame.TeamColor.BLACK, ChessPiece.PieceType.KNIGHT);
+        squares[7][7] = new ChessPiece( ChessGame.TeamColor.BLACK, ChessPiece.PieceType.ROOK);
+        for (int col=0; col < 8; col++){
+            squares[6][col] = new ChessPiece( ChessGame.TeamColor.BLACK, ChessPiece.PieceType.PAWN);
+        }
+
+        // ditto for white pieces
+        squares[0][0] = new ChessPiece( ChessGame.TeamColor.WHITE, ChessPiece.PieceType.ROOK);
+        squares[0][1] = new ChessPiece( ChessGame.TeamColor.WHITE, ChessPiece.PieceType.KNIGHT);
+        squares[0][2] = new ChessPiece( ChessGame.TeamColor.WHITE, ChessPiece.PieceType.BISHOP);
+        squares[0][3] = new ChessPiece( ChessGame.TeamColor.WHITE, ChessPiece.PieceType.QUEEN);
+        squares[0][4] = new ChessPiece( ChessGame.TeamColor.WHITE, ChessPiece.PieceType.KING);
+        squares[0][5] = new ChessPiece( ChessGame.TeamColor.WHITE, ChessPiece.PieceType.BISHOP);
+        squares[0][6] = new ChessPiece( ChessGame.TeamColor.WHITE, ChessPiece.PieceType.KNIGHT);
+        squares[0][7] = new ChessPiece( ChessGame.TeamColor.WHITE, ChessPiece.PieceType.ROOK);
+        for (int col=0; col < 8; col++){
+            squares[1][col] = new ChessPiece( ChessGame.TeamColor.WHITE, ChessPiece.PieceType.PAWN);
+        }
     }
 
     @Override
@@ -60,4 +85,38 @@ public class ChessBoard {
     public int hashCode() {
         return Arrays.deepHashCode(squares);
     }
+
+//    @Override
+//    public String toString(){
+//        Map<ChessPiece.PieceType, Character> PIECE_TO_CHAR = Map.of(
+//                 ChessPiece.PieceType.PAWN, 'p',
+//                 ChessPiece.PieceType.KNIGHT, 'n',
+//                 ChessPiece.PieceType.ROOK, 'r',
+//                 ChessPiece.PieceType.QUEEN, 'q',
+//                 ChessPiece.PieceType.KING, 'k',
+//                 ChessPiece.PieceType.BISHOP, 'b' );
+//
+//        StringBuilder toPrintOut = new StringBuilder();
+//        for (int row = 1; row <= 8; row++){
+//            for (int col = 1; col <= 8; col++){
+//                toPrintOut.append('|');
+//                Character myChar;
+//
+//                if ((squares[row - 1][col - 1] != null) && (squares[row - 1][col - 1].getTeamColor() == ChessGame.TeamColor.WHITE)){
+//                    myChar = PIECE_TO_CHAR.get(squares[row - 1][col - 1]);
+//                    if (myChar == null){
+//                        myChar = 'x';
+//                    }
+//                    myChar = Character.toUpperCase(myChar);
+//                } else if ((squares[row - 1][col - 1] != null) && (squares[row - 1][col - 1].getTeamColor() == ChessGame.TeamColor.BLACK)){
+//                    myChar = PIECE_TO_CHAR.get(squares[row - 1][col - 1]);
+//                } else {
+//                    myChar = ' ';
+//                }
+//                toPrintOut.append(myChar);
+//            }
+//            toPrintOut.append("|\n");
+//        }
+//        return toPrintOut.toString();
+//    }
 }
