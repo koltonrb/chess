@@ -86,37 +86,38 @@ public class ChessBoard {
         return Arrays.deepHashCode(squares);
     }
 
-//    @Override
-//    public String toString(){
-//        Map<ChessPiece.PieceType, Character> PIECE_TO_CHAR = Map.of(
-//                 ChessPiece.PieceType.PAWN, 'p',
-//                 ChessPiece.PieceType.KNIGHT, 'n',
-//                 ChessPiece.PieceType.ROOK, 'r',
-//                 ChessPiece.PieceType.QUEEN, 'q',
-//                 ChessPiece.PieceType.KING, 'k',
-//                 ChessPiece.PieceType.BISHOP, 'b' );
-//
-//        StringBuilder toPrintOut = new StringBuilder();
-//        for (int row = 1; row <= 8; row++){
-//            for (int col = 1; col <= 8; col++){
-//                toPrintOut.append('|');
-//                Character myChar;
-//
-//                if ((squares[row - 1][col - 1] != null) && (squares[row - 1][col - 1].getTeamColor() == ChessGame.TeamColor.WHITE)){
-//                    myChar = PIECE_TO_CHAR.get(squares[row - 1][col - 1]);
-//                    if (myChar == null){
-//                        myChar = 'x';
-//                    }
-//                    myChar = Character.toUpperCase(myChar);
-//                } else if ((squares[row - 1][col - 1] != null) && (squares[row - 1][col - 1].getTeamColor() == ChessGame.TeamColor.BLACK)){
-//                    myChar = PIECE_TO_CHAR.get(squares[row - 1][col - 1]);
-//                } else {
-//                    myChar = ' ';
-//                }
-//                toPrintOut.append(myChar);
-//            }
-//            toPrintOut.append("|\n");
-//        }
-//        return toPrintOut.toString();
-//    }
+    @Override
+    public String toString(){
+        Map<ChessPiece.PieceType, String> PIECE_TO_CHAR = Map.of(
+                 ChessPiece.PieceType.PAWN, "p",
+                 ChessPiece.PieceType.KNIGHT, "n",
+                 ChessPiece.PieceType.ROOK, "r",
+                 ChessPiece.PieceType.QUEEN, "q",
+                 ChessPiece.PieceType.KING, "k",
+                 ChessPiece.PieceType.BISHOP, "b" );
+
+        StringBuilder toPrintOut = new StringBuilder("START");
+        for (int row = 8; row >= 1; row--){
+            // start at the top of the board and work down
+            // so that Black is always in rows 7 and 8
+            for (int col = 1; col <= 8; col++){
+                toPrintOut.append('|');
+                String myStr = " ";
+                ChessPosition mySquare = new ChessPosition(row, col);
+
+                if ((getPiece(mySquare) != null) && (getPiece(mySquare).getTeamColor() == ChessGame.TeamColor.WHITE)){
+                    myStr = PIECE_TO_CHAR.get( getPiece(mySquare).getPieceType() );
+                    myStr = String.valueOf(Character.toUpperCase( myStr.charAt(0) ));
+                } else if ((getPiece(mySquare) != null) && (getPiece(mySquare).getTeamColor() == ChessGame.TeamColor.BLACK)){
+                    myStr = PIECE_TO_CHAR.get( getPiece(mySquare).getPieceType() );
+                } else {
+                    myStr = " ";
+                }
+                toPrintOut.append(myStr);
+            }
+            toPrintOut.append("|\n");
+        }
+        toPrintOut.append("END");
+        return toPrintOut.toString();
+    }
 }
