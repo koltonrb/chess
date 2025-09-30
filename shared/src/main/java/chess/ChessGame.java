@@ -66,10 +66,17 @@ public class ChessGame {
     public void makeMove(ChessMove move) throws InvalidMoveException {
         // a move is valid if it
         // has a chess piece at the specified start position
-        if ( this.board.getPiece( move.getStartPosition() ) == null){
+        if ( this.getBoard().getPiece( move.getStartPosition() ) == null){
             throw new InvalidMoveException(String.format("There is no piece to move at %s", move.getStartPosition().toString() ));
         }
+        // check that any piece at the new end position does actually belong to the enemy color
+        if (( this.getBoard().getPiece( move.getEndPosition() ) != null) && ( this.getBoard().getPiece( move.getEndPosition() ).getTeamColor() == this.getTeamTurn())) {
+            throw new InvalidMoveException(String.format("You cannot capture your own piece at %s", move.getEndPosition().toString()));
+        }
+        // fixme: maybe get the piece's moves from its piecemovescalculator, then if move.endposition not in the list, you know the move is invalid
         // does not run off of the board
+
+
         // does not place its own team into check
         // (or otherwise does not leave its own team in check)
 
@@ -95,7 +102,7 @@ public class ChessGame {
             // and record that the next team is up
             this.setTeamTurn( this.getTeamTurn() == TeamColor.WHITE ? TeamColor.BLACK: TeamColor.WHITE );
         } else {
-            throw new InvalidMoveException();
+            throw new InvalidMoveException(String.format("Move %s would leave your team in check!", move.toString()));
         }
 
     }
