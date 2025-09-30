@@ -20,6 +20,11 @@ public class ChessPiece {
         this.type = type;
     }
 
+    public ChessPiece(ChessPiece original){
+        this.pieceColor = original.getTeamColor();
+        this.type = original.getPieceType();
+    }
+
     @Override
     public String toString() {
         return "" + pieceColor + " " + type ;

@@ -17,6 +17,10 @@ public class ChessGame {
         board = new ChessBoard();
         board.resetBoard();
     }
+    public ChessGame(ChessGame original){
+        this.whoseTurn = original.getTeamTurn();
+        this.board = new ChessBoard( original.getBoard() );
+    }
 
     /**
      * @return Which team's turn it is
@@ -61,9 +65,39 @@ public class ChessGame {
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
         // a move is valid if it
+        // has a chess piece at the specified start position
+        if ( this.board.getPiece( move.getStartPosition() ) == null){
+            throw new InvalidMoveException(String.format("There is no piece to move at %s", move.getStartPosition().toString() ));
+        }
         // does not run off of the board
         // does not place its own team into check
         // (or otherwise does not leave its own team in check)
+
+        ChessGame gameCopy = new ChessGame( this);
+        // make the move on the copy
+        ChessPiece.PieceType pieceType;
+        if (move.getPromotionPiece() != null){
+            pieceType = move.getPromotionPiece();
+        } else {
+            pieceType = gameCopy.getBoard().getPiece( move.getStartPosition() ).getPieceType();
+        }
+        // move the piece
+        gameCopy.board.addPiece( move.getEndPosition(), new ChessPiece( gameCopy.getTeamTurn(), pieceType)) ;
+        // and remove the piece
+        gameCopy.board.addPiece( move.getStartPosition(), null);
+        Boolean check = gameCopy.isInCheck( getTeamTurn() );
+
+        if (! check){
+            // make the move on the actual gameboard
+            this.board.addPiece( move.getEndPosition(), new ChessPiece( this.getTeamTurn(), pieceType));
+            // and remove the piece from the starting square
+            this.board.addPiece( move.getStartPosition(), null);
+            // and record that the next team is up
+            this.setTeamTurn( this.getTeamTurn() == TeamColor.WHITE ? TeamColor.BLACK: TeamColor.WHITE );
+        } else {
+            throw new InvalidMoveException();
+        }
+
     }
 
     /**
