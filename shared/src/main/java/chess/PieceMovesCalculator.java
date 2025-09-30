@@ -3,180 +3,204 @@ package chess;
 import java.util.ArrayList;
 
 public class PieceMovesCalculator {
+    private ChessBoard board;
+    private ChessPosition position;
 
     public PieceMovesCalculator(ChessBoard board, ChessPosition position) {
-
+        this.board = board;
+        this.position = position;
     }
 
-    public ArrayList<ChessMove> calculateDiagonalMoves(ChessBoard board, ChessPosition position) {
-
-        int numRows;
-        int numCols;
-        int[] rows;
-        int[] cols;
-        ArrayList<ChessMove> diagonalMoves;
-        ArrayList<ChessPosition> piecesOnDiagonals;
-
-        numRows = 8;
-        numCols = 8;
-        diagonalMoves = new ArrayList<ChessMove>();
-        piecesOnDiagonals = new ArrayList<ChessPosition>();
-        rows = fillGridOptions(1, numRows);
-        cols = fillGridOptions(1, numCols);
-
-        // make a list of ordered pairs (row, col) to consider for diagonal moves
-        for (int i = 0; i < numRows; i++) {
-            int row = rows[i];
-            if (row == position.getRow()) {
-                continue;  // the current row cannot be a diagonal move
+    public ArrayList<ChessMove> calculateBishopMoves(){
+        ArrayList<ChessMove> possibleMoves = new ArrayList<ChessMove>();
+        // search up and right
+        for (int row= position.getRow()+1; row<=8; row++){
+            if ((row < 1) || (row >8)){
+                continue;
             }
-            for (int j = 0; j < numCols; j++) {
-                int col = cols[j];
-                if (col == position.getColumn()) {
-                    continue; // the current col cannot be a diagonal move
-                }
-                if (Math.abs(position.getRow() - row) == Math.abs(position.getColumn() - col)){
-                    // IE if (row, col) is on a diagonal from the current position
-                    ChessPosition nextPosition = new ChessPosition(row, col);
-
-                    if (board.getPiece( nextPosition ) != null && board.getPiece( nextPosition ).getTeamColor() == board.getPiece( position ).getTeamColor()){
-                        // friendly piece, cannot capture nor pass
-                        piecesOnDiagonals.add( nextPosition );
-                        continue;  // keep searching columns across the row
-                    }
-
-                    diagonalMoves.add(new ChessMove( position, nextPosition,  null));
-
-                    if (board.getPiece( nextPosition ) != null && board.getPiece( nextPosition ).getTeamColor() != board.getPiece( position ).getTeamColor()) {
-                        // enemy piece, can capture but cannot pass
-                        piecesOnDiagonals.add( nextPosition );
-                        continue; // keep searching columns across the row
-                    }
-                }
-
+            int col = position.getColumn() + ( row - position.getRow());
+            if ((col < 1) || (col >8)){
+                break;
             }
+            ChessPosition newPosition = new ChessPosition( row, col );
+
+            if ((board.getPiece( newPosition ) != null)  && (board.getPiece( newPosition).getTeamColor() != board.getPiece( position ).getTeamColor())){
+                // enemy piece, can capture
+                possibleMoves.add(new ChessMove( position, newPosition, null));
+                break;
+            }
+            if ((board.getPiece( newPosition ) != null) && (board.getPiece( newPosition).getTeamColor() == board.getPiece( position ).getTeamColor())) {
+                // friendly piece
+                break;
+            }
+            possibleMoves.add(new ChessMove( position, newPosition, null));
         }
-        // remove spaces that are on the diagonal but which would pass over an occupied square
-        for (ChessPosition limit:piecesOnDiagonals){
-            // up and to the right of position
-            if ((position.getRow() - limit.getRow() < 0) && (position.getColumn() - limit.getColumn() < 0)) {
-                diagonalMoves.removeIf( p -> p.getEndPosition().getRow() > limit.getRow() && p.getEndPosition().getColumn() > limit.getColumn() );
+
+        // search up and left
+        for (int row= position.getRow()+1; row<=8; row++){
+            if ((row < 1) || (row >8)){
+                continue;
             }
-            // up and to the left
-            if ((position.getRow() - limit.getRow() < 0) && (position.getColumn() - limit.getColumn() > 0 )) {
-                diagonalMoves.removeIf( p -> p.getEndPosition().getRow() > limit.getRow() && p.getEndPosition().getColumn() < limit.getColumn() );
+            int col = position.getColumn() - ( row - position.getRow());
+            if ((col < 1) || (col >8)){
+                break;
             }
-            // down and to the left
-            if ((position.getRow() - limit.getRow() > 0) && (position.getColumn() - limit.getColumn() > 0)) {
-                diagonalMoves.removeIf(p -> p.getEndPosition().getRow() < limit.getRow() && p.getEndPosition().getColumn() < limit.getColumn());
+            ChessPosition newPosition = new ChessPosition( row, col );
+
+            if ((board.getPiece( newPosition ) != null)  && (board.getPiece( newPosition).getTeamColor() != board.getPiece( position ).getTeamColor())){
+                // enemy piece, can capture
+                possibleMoves.add(new ChessMove( position, newPosition, null));
+                break;
             }
-            // down and to the right
-            if ((position.getRow() - limit.getRow() > 0) && (position.getColumn() - limit.getColumn() < 0)) {
-                diagonalMoves.removeIf(p->p.getEndPosition().getRow() < limit.getRow() && p.getEndPosition().getColumn() > limit.getColumn());
+            if ((board.getPiece( newPosition ) != null) && (board.getPiece( newPosition).getTeamColor() == board.getPiece( position ).getTeamColor())) {
+                // friendly piece
+                break;
             }
+            possibleMoves.add(new ChessMove( position, newPosition, null));
         }
-        return diagonalMoves;
+
+        // now search down and left
+        for (int row= position.getRow()-1; row>=1; row--){
+            if ((row < 1) || (row >8)){
+                continue;
+            }
+            int col = position.getColumn() - ( position.getRow() - row);
+            if ((col < 1) || (col >8)){
+                break;
+            }
+            ChessPosition newPosition = new ChessPosition( row, col );
+
+            if ((board.getPiece( newPosition ) != null)  && (board.getPiece( newPosition).getTeamColor() != board.getPiece( position ).getTeamColor())){
+                // enemy piece, can capture
+                possibleMoves.add(new ChessMove( position, newPosition, null));
+                break;
+            }
+            if ((board.getPiece( newPosition ) != null) && (board.getPiece( newPosition).getTeamColor() == board.getPiece( position ).getTeamColor())) {
+                // friendly piece
+                break;
+            }
+            possibleMoves.add(new ChessMove( position, newPosition, null));
+        }
+
+        // now search down and right
+        for (int row= position.getRow()-1; row>=1; row--){
+            if ((row < 1) || (row >8)){
+                continue;
+            }
+            int col = position.getColumn() + ( position.getRow() - row);
+            if ((col < 1) || (col >8)){
+                break;
+            }
+            ChessPosition newPosition = new ChessPosition( row, col );
+
+            if ((board.getPiece( newPosition ) != null)  && (board.getPiece( newPosition).getTeamColor() != board.getPiece( position ).getTeamColor())){
+                // enemy piece, can capture
+                possibleMoves.add(new ChessMove( position, newPosition, null));
+                break;
+            }
+            if ((board.getPiece( newPosition ) != null) && (board.getPiece( newPosition).getTeamColor() == board.getPiece( position ).getTeamColor())) {
+                // friendly piece
+                break;
+            }
+            possibleMoves.add(new ChessMove( position, newPosition, null));
+        }
+        return possibleMoves;
     }
 
-    public ArrayList<ChessMove> calculatePerpendicularMoves(ChessBoard board, ChessPosition position) {
+    public ArrayList<ChessMove> calculatePerpendicularMoves() {
+        ArrayList<ChessMove> possibleMoves = new ArrayList<ChessMove>();
+        ArrayList<ChessPosition> piecesOnPerp = new ArrayList<>();
 
-        int numRows;
-        int numCols;
-        int[] rows;
-        int [] cols;
-        ArrayList<ChessMove>  perpendicularMoves;
-        ArrayList<ChessPosition> piecesOnPerpendicular;
-
-        numRows = 8;
-        numCols = 8;
-        perpendicularMoves = new ArrayList<ChessMove>();
-        piecesOnPerpendicular = new ArrayList<ChessPosition>();
-        rows = fillGridOptions(1, numRows);
-        cols = fillGridOptions(1, numCols);
-
-        // make a list of ordered pairs (row, col) to consider for perpendicular moves
-        for (int i = 0; i < numRows; i++) {
-            // consider moves for every row on column position.getColumn()
-            int row = rows[i];
-            if (row == position.getRow()) {
-                continue; //the current position cannot be a move; we will consider moving along this row next
+        // search above
+        for (int row = position.getRow() + 1; row <= 8; row++) {
+            if ((row < 1) && (row > 8)) {
+                continue;
             }
-            ChessPosition nextPosition = new ChessPosition(row, position.getColumn());
-            if (board.getPiece(nextPosition) != null && board.getPiece(nextPosition).getTeamColor() == board.getPiece(position).getTeamColor()) {
-                // friendly piece, cannot capture nor pass
-                piecesOnPerpendicular.add(nextPosition);
-                continue;  // keep searching the other rows across the column
+            ChessPosition newPosition = new ChessPosition(row, position.getColumn());
+            if ((board.getPiece(newPosition) != null) && (board.getPiece(newPosition).getTeamColor() != board.getPiece(position).getTeamColor())) {
+                // enemy, can capture but not pass
+                possibleMoves.add(new ChessMove(position, newPosition, null));
+                break;
             }
-
-            perpendicularMoves.add(new ChessMove(position, nextPosition, null));
-
-            if (board.getPiece(nextPosition) != null && board.getPiece(nextPosition).getTeamColor() != board.getPiece(position).getTeamColor()) {
-                // enemy piece, can capture but cannot pass
-                piecesOnPerpendicular.add(nextPosition);
-                continue; // keep searching rows across the column
+            if ((board.getPiece(newPosition) != null) && (board.getPiece(newPosition).getTeamColor() == board.getPiece(position).getTeamColor())) {
+                // friendly piece
+                break;
             }
+            possibleMoves.add(new ChessMove(position, newPosition, null));
         }
-
-        for ( int j = 0; j < numRows; j++){
-            // consider moves for every row on column position.getRow()
-            int col = cols[j];
-            if (col == position.getColumn()){
-                continue; // current position cannot be a move; we considered moving along this column above
+        // search below
+        for (int row = position.getRow() - 1; row >= 1; row--) {
+            if ((row < 1) && (row > 8)) {
+                continue;
             }
-            ChessPosition nextPosition = new ChessPosition(position.getRow(), col);
-            if ((board.getPiece( nextPosition ) != null) && (board.getPiece( nextPosition ).getTeamColor() == board.getPiece( position ).getTeamColor())){
-                // friendly piece, cannot capture nor pass
-                piecesOnPerpendicular.add( nextPosition );
-                continue;  // keep searching the other columns across the row
+            ChessPosition newPosition = new ChessPosition(row, position.getColumn());
+            if ((board.getPiece(newPosition) != null) && (board.getPiece(newPosition).getTeamColor() != board.getPiece(position).getTeamColor())) {
+                // enemy, can capture but not pass
+                possibleMoves.add(new ChessMove(position, newPosition, null));
+                break;
             }
-            perpendicularMoves.add(new ChessMove( position, nextPosition, null));
-
-            if ((board.getPiece( nextPosition) != null) && (board.getPiece( nextPosition ).getTeamColor() != board.getPiece( position ).getTeamColor())){
-                // enemy piece, can capture but cannot pass
-                piecesOnPerpendicular.add( nextPosition );
-                continue; //keep searching columns across the row
+            if ((board.getPiece(newPosition) != null) && (board.getPiece(newPosition).getTeamColor() == board.getPiece(position).getTeamColor())) {
+                // friendly piece
+                break;
             }
-
+            possibleMoves.add(new ChessMove(position, newPosition, null));
         }
-        // remove spaces that are on the perpendicular but which would pass over an occupied square
-        for (ChessPosition limit:piecesOnPerpendicular) {
-            // limit above position
-            if ((position.getColumn() == limit.getColumn()) && (position.getRow() < limit.getRow())) {
-                perpendicularMoves.removeIf(p -> p.getEndPosition().getRow() > limit.getRow());
+        // search left
+        for (int col = position.getColumn() - 1; col >= 1; col--) {
+            if ((col < 1) && (col > 8)) {
+                continue;
             }
-            // limit below position
-            if ((position.getColumn() == limit.getColumn()) && (position.getRow() > limit.getRow())) {
-                perpendicularMoves.removeIf(p -> p.getEndPosition().getRow() < limit.getRow());
+            ChessPosition newPosition = new ChessPosition(position.getRow(), col);
+            if ((board.getPiece(newPosition) != null) && (board.getPiece(newPosition).getTeamColor() != board.getPiece(position).getTeamColor())) {
+                // enemy, can capture but not pass
+                possibleMoves.add(new ChessMove(position, newPosition, null));
+                break;
             }
-            // limit left of position
-            if ((position.getRow() == limit.getRow()) && (position.getColumn() > limit.getColumn())) {
-                perpendicularMoves.removeIf(p -> p.getEndPosition().getColumn() < limit.getColumn());
+            if ((board.getPiece(newPosition) != null) && (board.getPiece(newPosition).getTeamColor() == board.getPiece(position).getTeamColor())) {
+                // friendly piece
+                break;
             }
-            // limit right of position
-            if ((position.getRow() == limit.getRow()) && (position.getColumn() < limit.getColumn())) {
-                perpendicularMoves.removeIf(p -> p.getEndPosition().getColumn() > limit.getColumn());
-            }
+            possibleMoves.add(new ChessMove(position, newPosition, null));
         }
-        return perpendicularMoves;
+        // search right
+        for (int col = position.getColumn() + 1; col <= 8; col++) {
+            if ((col < 1) && (col > 8)) {
+                continue;
+            }
+            ChessPosition newPosition = new ChessPosition(position.getRow(), col);
+            if ((board.getPiece(newPosition) != null) && (board.getPiece(newPosition).getTeamColor() != board.getPiece(position).getTeamColor())) {
+                // enemy, can capture but not pass
+                possibleMoves.add(new ChessMove(position, newPosition, null));
+                break;
+            }
+            if ((board.getPiece(newPosition) != null) && (board.getPiece(newPosition).getTeamColor() == board.getPiece(position).getTeamColor())) {
+                // friendly piece
+                break;
+            }
+            possibleMoves.add(new ChessMove(position, newPosition, null));
+        }
+        return possibleMoves;
     }
 
-    /*
-    fillGridOptions returns an array of possible integer values representing either the vertical
-    or the horizontal dimension of the ChessBoard
-     */
-    private int[] fillGridOptions(int min, int max) {
-        int[] vals;
+    public ArrayList<ChessMove> calculateQueenMoves(){
+        ArrayList<ChessMove> possibleMoves = new ArrayList<ChessMove>();
+        ArrayList<ChessMove> diagMoves = new ArrayList<ChessMove>();
+        ArrayList<ChessMove> perpMoves = new ArrayList<ChessMove>();
 
-        vals = new int[max - min + 1];
-
-        for (int i = min; i < max + 1; i++){ // + 1 since min and max are row/col numbers, not indices
-            vals[i - 1] = i;  // zero indexed array
-        }
-        //vals.remove(current); // we just want a list of spaces to which we might be able to move
-        return vals;
+        diagMoves = calculateBishopMoves();
+        perpMoves = calculatePerpendicularMoves();
+        boolean combined = diagMoves.addAll(perpMoves);
+        return diagMoves;
     }
 
-    public ArrayList<ChessMove> calculatePawnMoves(ChessBoard board, ChessPosition position){
+    public ArrayList<ChessMove> calculateKingMoves(){
+        ArrayList<ChessMove> possibleMoves = new ArrayList<ChessMove>();
+        possibleMoves = calculateQueenMoves();
+        possibleMoves.removeIf(m->(Math.abs(m.getEndPosition().getRow() - position.getRow()) > 1) || (Math.abs(m.getEndPosition().getColumn() - position.getColumn() )> 1));
+        return possibleMoves;
+    }
+
+    public ArrayList<ChessMove> calculatePawnMoves(){
         ArrayList<ChessMove> possibleMoves = new ArrayList<ChessMove>();
         ChessPiece.PieceType[] promotionPieces = new ChessPiece.PieceType[4];
         boolean blockedAtOne = new Boolean(false);
@@ -284,7 +308,7 @@ public class PieceMovesCalculator {
         return postPromoMoves;
     }
 
-    public ArrayList<ChessMove> calculateKnightMoves(ChessBoard board, ChessPosition position){
+    public ArrayList<ChessMove> calculateKnightMoves(){
         ArrayList<ChessMove> possibleMoves = new ArrayList<ChessMove>();
 
         ChessPosition upLeft = new ChessPosition( position.getRow() + 2, position.getColumn() - 1);

@@ -69,33 +69,26 @@ public class ChessPiece {
      * @return Collection of valid moves
      */
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
-        ChessPiece piece = board.getPiece(myPosition);
+
         PieceMovesCalculator movesCalculator = new PieceMovesCalculator(board, myPosition);
-        if (piece.getPieceType() == PieceType.BISHOP) {
-            return movesCalculator.calculateDiagonalMoves(board, myPosition);
+
+        if (board.getPiece( myPosition ).getPieceType() == PieceType.BISHOP){
+            return movesCalculator.calculateBishopMoves();
         }
-        if (piece.getPieceType() == PieceType.ROOK){
-            return movesCalculator.calculatePerpendicularMoves(board, myPosition);
+        if (board.getPiece( myPosition ).getPieceType() == PieceType.ROOK){
+            return movesCalculator.calculatePerpendicularMoves();
         }
-        if (piece.getPieceType() == PieceType.QUEEN){
-            ArrayList<ChessMove> diagonalMoves = movesCalculator.calculateDiagonalMoves(board, myPosition);
-            ArrayList<ChessMove> perpendicularMoves = movesCalculator.calculatePerpendicularMoves(board, myPosition);
-            diagonalMoves.addAll(perpendicularMoves);
-            return diagonalMoves; // now houses both diagonal and perpendicular moves
+        if (board.getPiece( myPosition ).getPieceType() == PieceType.QUEEN){
+            return movesCalculator.calculateQueenMoves();
         }
-        if (piece.getPieceType() == PieceType.KING){
-            ArrayList<ChessMove> diagonalMoves = movesCalculator.calculateDiagonalMoves(board, myPosition);  // unrestricted distance
-            ArrayList<ChessMove> perpendicularMoves = movesCalculator.calculatePerpendicularMoves(board, myPosition); // unrestricted distance
-            diagonalMoves.addAll(perpendicularMoves); // unrestricted distance
-            // now restrict to a 1-norm distance of 1
-            diagonalMoves.removeIf(p->((Math.abs(p.getEndPosition().getRow() - myPosition.getRow()) > 1)  || (Math.abs(p.getEndPosition().getColumn() - myPosition.getColumn()) > 1)));
-            return diagonalMoves;
+        if (board.getPiece( myPosition ).getPieceType() == PieceType.KING){
+            return movesCalculator.calculateKingMoves();
         }
-        if (piece.getPieceType() == PieceType.PAWN){
-            return movesCalculator.calculatePawnMoves(board, myPosition);
+        if (board.getPiece( myPosition ).getPieceType() == PieceType.PAWN){
+            return movesCalculator.calculatePawnMoves();
         }
-        if (piece.getPieceType() == PieceType.KNIGHT){
-            return movesCalculator.calculateKnightMoves(board, myPosition);
+        if (board.getPiece( myPosition ).getPieceType() == PieceType.KNIGHT){
+            return movesCalculator.calculateKnightMoves();
         }
         return List.of();
     }
