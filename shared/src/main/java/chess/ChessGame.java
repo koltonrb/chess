@@ -1,5 +1,6 @@
 package chess;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 /**
@@ -73,10 +74,11 @@ public class ChessGame {
         if (( this.getBoard().getPiece( move.getEndPosition() ) != null) && ( this.getBoard().getPiece( move.getEndPosition() ).getTeamColor() == this.getTeamTurn())) {
             throw new InvalidMoveException(String.format("You cannot capture your own piece at %s", move.getEndPosition().toString()));
         }
-        // fixme: maybe get the piece's moves from its piecemovescalculator, then if move.endposition not in the list, you know the move is invalid
-        // does not run off of the board
 
-
+        Collection<ChessMove> possibleMoves = this.getBoard().getPiece( move.getStartPosition() ).pieceMoves( this.getBoard(), move.getStartPosition());
+        if (! possibleMoves.contains( move ) ){
+            throw new InvalidMoveException(String.format("%s is not a valid move for a %s", move.toString(), this.getBoard().getPiece( move.getStartPosition() ).toString()));
+        }
         // does not place its own team into check
         // (or otherwise does not leave its own team in check)
 
@@ -114,7 +116,39 @@ public class ChessGame {
      * @return True if the specified team is in check
      */
     public boolean isInCheck(TeamColor teamColor) {
-        throw new RuntimeException("Not implemented");
+        // a team is in check if its king lies in the path of travel of any of the other team's pieces
+        ArrayList<ChessPiece> enemyPieces = new ArrayList<ChessPiece>();
+
+        // find your team's king on the board
+        ChessPiece comparisonKing = new ChessPiece( teamColor, ChessPiece.PieceType.KING);  // for later comparison
+        ChessPosition myKingPosition = null;
+        for (int row=1; row<=8; row++) {
+            for (int col = 1; col <= 8; col++) {
+                ChessPosition square = new ChessPosition(row, col);
+                if ((this.getBoard().getPiece(square) != null) && (this.getBoard().getPiece(square).equals(comparisonKing))) {
+                    myKingPosition = square;
+                }
+            }
+        }
+        // now look at each enemy piece's possible moves.  Can any attack your King?
+        for (int row=1; row<=8; row++) {
+            for (int col = 1; col <= 8; col++) {
+                ChessPosition square = new ChessPosition(row, col);
+                if ((this.getBoard().getPiece( square ) != null) && (this.getBoard().getPiece( square ).getTeamColor() != teamColor))  {
+                    // then there is an enemy piece in the square
+                    // and we should check to see if it can attack the king
+                    ChessPiece enemyPiece = this.getBoard().getPiece( square );
+                    ArrayList<ChessMove> enemyMoves = (ArrayList<ChessMove>) enemyPiece.pieceMoves( this.getBoard(), square );
+                    for (ChessMove move : enemyMoves){
+                        // check to see if enemyPiece can get to myKingPosition
+                        if (move.getEndPosition().equals( myKingPosition )){
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     /**
