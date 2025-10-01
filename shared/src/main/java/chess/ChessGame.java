@@ -2,6 +2,7 @@ package chess;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Objects;
 
 /**
  * For a class that can manage a chess game, making moves on a board
@@ -43,6 +44,20 @@ public class ChessGame {
         this.whoseTurn = team;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        ChessGame chessGame = (ChessGame) o;
+        return whoseTurn == chessGame.whoseTurn && Objects.equals(board, chessGame.board);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(whoseTurn, board);
+    }
+
     /**
      * Enum identifying the 2 possible teams in a chess game
      */
@@ -77,9 +92,9 @@ public class ChessGame {
                     validMoves.add(move);
                 }
             }
-            if (validMoves.size() > 0){
-                return validMoves;
-            }
+//            if (validMoves.size() > 0){
+            return validMoves;
+//            }
         }
         return null;
     }
@@ -111,21 +126,6 @@ public class ChessGame {
         }
         // does not place its own team into check
         // (or otherwise does not leave its own team in check)
-
-//        ChessGame gameCopy = new ChessGame( this);
-//        // make the move on the copy
-//        ChessPiece.PieceType pieceType;
-//        if (move.getPromotionPiece() != null){
-//            pieceType = move.getPromotionPiece();
-//        } else {
-//            pieceType = gameCopy.getBoard().getPiece( move.getStartPosition() ).getPieceType();
-//        }
-//        // move the piece
-//        gameCopy.board.addPiece( move.getEndPosition(), new ChessPiece( gameCopy.getTeamTurn(), pieceType)) ;
-//        // and remove the piece
-//        gameCopy.board.addPiece( move.getStartPosition(), null);
-//        Boolean check = gameCopy.isInCheck( getTeamTurn() );
-
         ChessPiece.PieceType pieceType;
         if (move.getPromotionPiece() != null){
             pieceType = move.getPromotionPiece();
@@ -225,7 +225,7 @@ public class ChessGame {
                     ChessPosition square = new ChessPosition(row, col);
                     if ((this.getBoard().getPiece( square ) != null) && (this.getBoard().getPiece( square ).getTeamColor() == teamColor)){
                         ArrayList<ChessMove> validMoves = (ArrayList<ChessMove>) this.validMoves( square );
-                        if (validMoves != null){
+                        if ((validMoves != null) && (validMoves.size() > 0)){
                             // null returned if there are no moves from this square
                             // so if we do find a valid move, then we are not in checkmate
                             return false;
@@ -246,7 +246,26 @@ public class ChessGame {
      * @return True if the specified team is in stalemate, otherwise false
      */
     public boolean isInStalemate(TeamColor teamColor) {
-        throw new RuntimeException("Not implemented");
+        // in stalemate if not in check AND no valid moves
+        if (!isInCheck( teamColor )){
+            // now look to see if you have any valid moves
+            // start by finding your team's pieces
+            for (int row=1; row<=8; row++){
+                for (int col=1; col<=8; col++){
+                    ChessPosition square = new ChessPosition(row, col);
+                    if ((this.getBoard().getPiece( square ) != null) && (this.getBoard().getPiece( square ).getTeamColor() == teamColor)){
+                        ArrayList<ChessMove> validMoves = (ArrayList<ChessMove>) this.validMoves( square );
+                        if ((validMoves != null) && (validMoves.size() > 0)){
+                            // null returned if there are no moves from this square
+                            // so if we do find a valid move, then we are not in stalemate
+                            return false;
+                        }
+                    }
+                }
+            }
+            return true;
+        }
+        return false;
     }
 
     /**
