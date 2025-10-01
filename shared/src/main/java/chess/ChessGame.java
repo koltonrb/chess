@@ -70,7 +70,11 @@ public class ChessGame {
         if ( this.getBoard().getPiece( move.getStartPosition() ) == null){
             throw new InvalidMoveException(String.format("There is no piece to move at %s", move.getStartPosition().toString() ));
         }
-        // check that any piece at the new end position does actually belong to the enemy color
+        // check that any piece at the start position does actually belong to your color
+        if (( this.getBoard().getPiece( move.getStartPosition() ) != null) && ( this.getBoard().getPiece( move.getStartPosition() ).getTeamColor() != this.getTeamTurn())){
+            throw new InvalidMoveException(String.format("%s at %s belongs to the wrong team.  It is %s turn", this.getBoard().getPiece( move.getStartPosition() ).toString(), move.getStartPosition().toString(), this.getTeamTurn().toString()));
+        }
+        // check that any piece at the end position does actually belong to the enemy color
         if (( this.getBoard().getPiece( move.getEndPosition() ) != null) && ( this.getBoard().getPiece( move.getEndPosition() ).getTeamColor() == this.getTeamTurn())) {
             throw new InvalidMoveException(String.format("You cannot capture your own piece at %s", move.getEndPosition().toString()));
         }
