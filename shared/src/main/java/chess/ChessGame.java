@@ -22,6 +22,10 @@ public class ChessGame {
         this.whoseTurn = original.getTeamTurn();
         this.board = new ChessBoard( original.getBoard() );
     }
+    public ChessGame(ChessBoard myBoard, ChessGame.TeamColor currentTurn){
+        this.whoseTurn = currentTurn;
+        this.board = myBoard;
+    }
 
     /**
      * @return Which team's turn it is
@@ -55,7 +59,28 @@ public class ChessGame {
      * startPosition
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
-        throw new RuntimeException("Not implemented");
+        ArrayList<ChessMove> validMoves = new ArrayList<ChessMove>();
+
+        if (this.getBoard().getPiece( startPosition ) == null){
+            // IE there is no piece at this square
+            return null;
+        }
+
+        if (this.getBoard().getPiece( startPosition ) != null){
+            ArrayList<ChessMove> possibleMoves = (ArrayList<ChessMove>) this.getBoard().getPiece( startPosition ).pieceMoves( this.getBoard(), startPosition);
+            for (ChessMove move: possibleMoves){
+                // see if the move would place the king in danger of check
+                if (willMoveResultInCheck( this.getBoard(), move)){
+                    continue;
+                }
+                else {
+                    validMoves.add(move);
+                }
+            }
+        return validMoves;
+        }
+
+        return null;
     }
 
     /**
@@ -86,19 +111,27 @@ public class ChessGame {
         // does not place its own team into check
         // (or otherwise does not leave its own team in check)
 
-        ChessGame gameCopy = new ChessGame( this);
-        // make the move on the copy
+//        ChessGame gameCopy = new ChessGame( this);
+//        // make the move on the copy
+//        ChessPiece.PieceType pieceType;
+//        if (move.getPromotionPiece() != null){
+//            pieceType = move.getPromotionPiece();
+//        } else {
+//            pieceType = gameCopy.getBoard().getPiece( move.getStartPosition() ).getPieceType();
+//        }
+//        // move the piece
+//        gameCopy.board.addPiece( move.getEndPosition(), new ChessPiece( gameCopy.getTeamTurn(), pieceType)) ;
+//        // and remove the piece
+//        gameCopy.board.addPiece( move.getStartPosition(), null);
+//        Boolean check = gameCopy.isInCheck( getTeamTurn() );
+
         ChessPiece.PieceType pieceType;
         if (move.getPromotionPiece() != null){
             pieceType = move.getPromotionPiece();
         } else {
-            pieceType = gameCopy.getBoard().getPiece( move.getStartPosition() ).getPieceType();
+            pieceType = this.getBoard().getPiece( move.getStartPosition() ).getPieceType();
         }
-        // move the piece
-        gameCopy.board.addPiece( move.getEndPosition(), new ChessPiece( gameCopy.getTeamTurn(), pieceType)) ;
-        // and remove the piece
-        gameCopy.board.addPiece( move.getStartPosition(), null);
-        Boolean check = gameCopy.isInCheck( getTeamTurn() );
+        Boolean check = willMoveResultInCheck( this.getBoard(), move);
 
         if (! check){
             // make the move on the actual gameboard
@@ -111,6 +144,26 @@ public class ChessGame {
             throw new InvalidMoveException(String.format("Move %s would leave your team in check!", move.toString()));
         }
 
+    }
+
+    private boolean willMoveResultInCheck( ChessBoard myBoard, ChessMove myMove){
+        ChessGame gameCopy = new ChessGame( new ChessBoard(myBoard), this.getTeamTurn() );
+        ChessPiece.PieceType pieceType;
+        ChessGame.TeamColor pieceColor = gameCopy.getTeamTurn();
+        if (myMove.getPromotionPiece() != null){
+            pieceType = myMove.getPromotionPiece();
+        } else {
+            pieceType = gameCopy.getBoard().getPiece( myMove.getStartPosition() ).getPieceType();
+            // necessary since you may want to test moves when it is the other team's turn
+            pieceColor = gameCopy.getBoard().getPiece( myMove.getStartPosition() ).getTeamColor();
+        }
+
+        // move the piece on the copy
+        gameCopy.getBoard().addPiece( myMove.getEndPosition(), new ChessPiece(pieceColor, pieceType));
+        // and remove the copy of the piece that just moved
+        gameCopy.getBoard().addPiece( myMove.getStartPosition(), null);
+
+        return gameCopy.isInCheck( pieceColor );
     }
 
     /**
