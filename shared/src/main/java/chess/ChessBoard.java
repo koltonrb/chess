@@ -107,7 +107,7 @@ public class ChessBoard {
                  ChessPiece.PieceType.KING, "k",
                  ChessPiece.PieceType.BISHOP, "b" );
 
-        StringBuilder toPrintOut = new StringBuilder("START");
+        StringBuilder toPrintOut = new StringBuilder();
         for (int row = 8; row >= 1; row--){
             // start at the top of the board and work down
             // so that Black is always in rows 7 and 8
@@ -128,7 +128,6 @@ public class ChessBoard {
             }
             toPrintOut.append("|\n");
         }
-        toPrintOut.append("END");
         return toPrintOut.toString();
     }
 }

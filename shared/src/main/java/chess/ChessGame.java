@@ -77,9 +77,10 @@ public class ChessGame {
                     validMoves.add(move);
                 }
             }
-        return validMoves;
+            if (validMoves.size() > 0){
+                return validMoves;
+            }
         }
-
         return null;
     }
 
@@ -215,7 +216,26 @@ public class ChessGame {
      * @return True if the specified team is in checkmate
      */
     public boolean isInCheckmate(TeamColor teamColor) {
-        throw new RuntimeException("Not implemented");
+        // in check mate if in check AND no valid moves
+        if (isInCheck( teamColor )){
+            // now look to see if you have any valid moves
+            // start by finding your team's pieces
+            for (int row=1; row<=8; row++){
+                for (int col=1; col<=8; col++){
+                    ChessPosition square = new ChessPosition(row, col);
+                    if ((this.getBoard().getPiece( square ) != null) && (this.getBoard().getPiece( square ).getTeamColor() == teamColor)){
+                        ArrayList<ChessMove> validMoves = (ArrayList<ChessMove>) this.validMoves( square );
+                        if (validMoves != null){
+                            // null returned if there are no moves from this square
+                            // so if we do find a valid move, then we are not in checkmate
+                            return false;
+                        }
+                    }
+                }
+            }
+            return true;
+        }
+        return false;
     }
 
     /**
