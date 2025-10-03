@@ -13,20 +13,27 @@ import java.util.Objects;
 public class ChessGame {
     private TeamColor whoseTurn;
     private ChessBoard board;
+    private ChessMove prevMove;
 
     public ChessGame() {
         this.whoseTurn = TeamColor.WHITE;
-        board = new ChessBoard();
-        board.resetBoard();
+        this.board = new ChessBoard();
+        this.board.resetBoard();
+        this.prevMove = null;
+
     }
+
     public ChessGame(ChessGame original){
         this.whoseTurn = original.getTeamTurn();
         this.board = new ChessBoard( original.getBoard() );
+        this.prevMove = original.getPrevMove();
+        this.prevMove = original.getPrevMove();
     }
-    public ChessGame(ChessBoard myBoard, ChessGame.TeamColor currentTurn){
-        this.whoseTurn = currentTurn;
-        this.board = myBoard;
-    }
+//    public ChessGame(ChessBoard myBoard, ChessGame.TeamColor currentTurn, ChessBoard myPrevBoard){
+//        this.whoseTurn = currentTurn;
+//        this.board = myBoard;
+//        this.prevBoard = myPrevBoard;
+//    }
 
     /**
      * @return Which team's turn it is
@@ -92,9 +99,35 @@ public class ChessGame {
                     validMoves.add(move);
                 }
             }
-//            if (validMoves.size() > 0){
-            return validMoves;
+            // check for en passant for pawns
+//            if (this.getBoard().getPiece( startPosition ).getPieceType() == ChessPiece.PieceType.PAWN){
+//                // if a pawn
+//                ChessPosition prevPawnStartPosition = this.getPrevMove().getStartPosition();
+//                ChessPosition prevPawnEndPosition = this.getPrevMove().getEndPosition();
+//                if ((this.getBoard().getPiece( prevPawnEndPosition ) != null) && (this.getBoard().getPiece( prevPawnEndPosition ).getPieceType() == ChessPiece.PieceType.PAWN)){
+//                    // now check if this previously moved pawn jumped over the current pawn's capture square
+//                    if ( Math.abs( prevPawnEndPosition.getRow() - prevPawnStartPosition.getRow()) == 2 ){
+//                        // then the previous pawn did move two spaces... now check if adjacent to your pawn at startPosition
+//                        if (( Math.abs( startPosition.getColumn() - prevPawnEndPosition.getColumn() ) == 1) && ( startPosition.getRow() - prevPawnEndPosition.getRow() == 0)){
+//                            // then you should note that enpassant capture is possible this move!
+//                            int rowAdvancement = 0;
+//                            if (this.getBoard().getPiece( startPosition ).getTeamColor() == TeamColor.BLACK) {
+//                                rowAdvancement = -1;
+//                            } else if (this.getBoard().getPiece( startPosition ).getTeamColor() == TeamColor.WHITE) {
+//                                rowAdvancement = +1;
+//                            }
+//                            ChessPosition enPassantCapturePosition = new ChessPosition( startPosition.getRow() + rowAdvancement, prevPawnStartPosition.getColumn());
+//                            ChessMove enPassant = new ChessMove(startPosition, enPassantCapturePosition, null);
+//                            validMoves.add( enPassant );
+//                        }
+//                    }
+//                }
 //            }
+            if (isEnPassantPossible( startPosition )){
+                ChessMove enPassant = formEnPassantMove( startPosition );
+                validMoves.add( enPassant );
+            }
+            return validMoves;
         }
         return null;
     }
@@ -121,6 +154,13 @@ public class ChessGame {
         }
 
         Collection<ChessMove> possibleMoves = this.getBoard().getPiece( move.getStartPosition() ).pieceMoves( this.getBoard(), move.getStartPosition());
+        if (this.isEnPassantPossible( move.getStartPosition() )) {
+            ChessMove enPassant = formEnPassantMove(move.getStartPosition());
+            if (enPassant != null) {
+                possibleMoves.add(enPassant);
+            }
+        }
+
         if (! possibleMoves.contains( move ) ){
             throw new InvalidMoveException(String.format("%s is not a valid move for a %s", move.toString(), this.getBoard().getPiece( move.getStartPosition() ).toString()));
         }
@@ -135,12 +175,18 @@ public class ChessGame {
         Boolean check = willMoveResultInCheck( this.getBoard(), move);
 
         if (! check){
+            if (isEnPassantPossible( move.getStartPosition() )){
+                this.getBoard().addPiece( this.getPrevMove().getEndPosition(), null);
+            }
             // make the move on the actual gameboard
             this.board.addPiece( move.getEndPosition(), new ChessPiece( this.getTeamTurn(), pieceType));
             // and remove the piece from the starting square
             this.board.addPiece( move.getStartPosition(), null);
             // and record that the next team is up
             this.setTeamTurn( this.getTeamTurn() == TeamColor.WHITE ? TeamColor.BLACK: TeamColor.WHITE );
+            // if you made an enpassant move, then the now extra copy of the captured pawn must be removed
+            // and record the previous move
+            this.setPrevMove( move );
         } else {
             throw new InvalidMoveException(String.format("Move %s would leave your team in check!", move.toString()));
         }
@@ -148,9 +194,9 @@ public class ChessGame {
     }
 
     private boolean willMoveResultInCheck( ChessBoard myBoard, ChessMove myMove){
-        ChessGame gameCopy = new ChessGame( new ChessBoard(myBoard), this.getTeamTurn() );
+        ChessGame gameCopy = new ChessGame( this );
         ChessPiece.PieceType pieceType;
-        ChessGame.TeamColor pieceColor = gameCopy.getTeamTurn();
+        TeamColor pieceColor = gameCopy.getTeamTurn();
         if (myMove.getPromotionPiece() != null){
             pieceType = myMove.getPromotionPiece();
         } else {
@@ -165,6 +211,44 @@ public class ChessGame {
         gameCopy.getBoard().addPiece( myMove.getStartPosition(), null);
 
         return gameCopy.isInCheck( pieceColor );
+    }
+
+    private boolean isEnPassantPossible( ChessPosition startPosition ) {
+
+        // check for en passant for pawns
+        if ((this.getPrevMove() != null) && (this.getBoard().getPiece(startPosition) != null) && (this.getBoard().getPiece(startPosition).getPieceType() == ChessPiece.PieceType.PAWN)) {
+            // if a pawn
+            ChessPosition prevPawnStartPosition = this.getPrevMove().getStartPosition();
+            ChessPosition prevPawnEndPosition = this.getPrevMove().getEndPosition();
+            if ((this.getBoard().getPiece(prevPawnEndPosition) != null) && (this.getBoard().getPiece(prevPawnEndPosition).getPieceType() == ChessPiece.PieceType.PAWN)) {
+                // now check if this previously moved pawn jumped over the current pawn's capture square
+                if (Math.abs(prevPawnEndPosition.getRow() - prevPawnStartPosition.getRow()) == 2) {
+                    // then the previous pawn did move two spaces... now check if adjacent to your pawn at startPosition
+                    if ((Math.abs(startPosition.getColumn() - prevPawnEndPosition.getColumn()) == 1) && (startPosition.getRow() - prevPawnEndPosition.getRow() == 0)) {
+                        // then you should note that enpassant capture is possible this move!
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    private ChessMove formEnPassantMove( ChessPosition startPosition ){
+        if (! isEnPassantPossible( startPosition )){
+            return null;
+        }
+        // then you should note that enpassant capture is possible this move!
+        int rowAdvancement = 0;
+        if (this.getBoard().getPiece( startPosition ).getTeamColor() == TeamColor.BLACK) {
+            rowAdvancement = -1;
+        } else if (this.getBoard().getPiece( startPosition ).getTeamColor() == TeamColor.WHITE) {
+            rowAdvancement = +1;
+        }
+        ChessPosition prevPawnStartPosition = this.getPrevMove().getStartPosition();
+        ChessPosition enPassantCapturePosition = new ChessPosition( startPosition.getRow() + rowAdvancement, prevPawnStartPosition.getColumn());
+        ChessMove enPassant = new ChessMove(startPosition, enPassantCapturePosition, null);
+        return enPassant;
     }
 
     /**
@@ -268,6 +352,11 @@ public class ChessGame {
         return false;
     }
 
+//    public ChessMove enPassant(ChessPosition){
+//        // assumes that chess position contains a pawn
+//
+//    }
+
     /**
      * Sets this game's chessboard with a given board
      *
@@ -284,5 +373,14 @@ public class ChessGame {
      */
     public ChessBoard getBoard() {
         return this.board;
+    }
+
+
+    public ChessMove getPrevMove() {
+        return prevMove;
+    }
+
+    public void setPrevMove(ChessMove prevMove) {
+        this.prevMove = prevMove;
     }
 }
