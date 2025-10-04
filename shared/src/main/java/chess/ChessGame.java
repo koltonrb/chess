@@ -14,12 +14,27 @@ public class ChessGame {
     private TeamColor whoseTurn;
     private ChessBoard board;
     private ChessMove prevMove;
+    private boolean blackKingSideRookMoved;
+    private boolean blackQueenSideRookMoved;
+    private boolean blackKingMoved;
+    private boolean whiteKingSideRookMoved;
+    private boolean whiteQueenSideRookMoved;
+    private boolean whiteKingMoved;
+    private boolean investigatingCastle;
+
 
     public ChessGame() {
         this.whoseTurn = TeamColor.WHITE;
         this.board = new ChessBoard();
         this.board.resetBoard();
         this.prevMove = null;
+        this.blackKingSideRookMoved = false;
+        this.blackQueenSideRookMoved = false;
+        this.blackKingMoved = false;
+        this.whiteKingSideRookMoved = false;
+        this.whiteQueenSideRookMoved = false;
+        this.whiteKingMoved = false;
+        this.investigatingCastle = false;
 
     }
 
@@ -27,13 +42,14 @@ public class ChessGame {
         this.whoseTurn = original.getTeamTurn();
         this.board = new ChessBoard( original.getBoard() );
         this.prevMove = original.getPrevMove();
-        this.prevMove = original.getPrevMove();
+        this.blackKingSideRookMoved = original.blackKingSideRookMoved;
+        this.blackQueenSideRookMoved = original.blackQueenSideRookMoved;
+        this.blackKingMoved = original.blackKingMoved;
+        this.whiteKingSideRookMoved = original.whiteKingSideRookMoved;
+        this.whiteQueenSideRookMoved = original.whiteQueenSideRookMoved;
+        this.whiteKingMoved = original.whiteKingMoved;
+        this.investigatingCastle = true;
     }
-//    public ChessGame(ChessBoard myBoard, ChessGame.TeamColor currentTurn, ChessBoard myPrevBoard){
-//        this.whoseTurn = currentTurn;
-//        this.board = myBoard;
-//        this.prevBoard = myPrevBoard;
-//    }
 
     /**
      * @return Which team's turn it is
@@ -99,33 +115,17 @@ public class ChessGame {
                     validMoves.add(move);
                 }
             }
-            // check for en passant for pawns
-//            if (this.getBoard().getPiece( startPosition ).getPieceType() == ChessPiece.PieceType.PAWN){
-//                // if a pawn
-//                ChessPosition prevPawnStartPosition = this.getPrevMove().getStartPosition();
-//                ChessPosition prevPawnEndPosition = this.getPrevMove().getEndPosition();
-//                if ((this.getBoard().getPiece( prevPawnEndPosition ) != null) && (this.getBoard().getPiece( prevPawnEndPosition ).getPieceType() == ChessPiece.PieceType.PAWN)){
-//                    // now check if this previously moved pawn jumped over the current pawn's capture square
-//                    if ( Math.abs( prevPawnEndPosition.getRow() - prevPawnStartPosition.getRow()) == 2 ){
-//                        // then the previous pawn did move two spaces... now check if adjacent to your pawn at startPosition
-//                        if (( Math.abs( startPosition.getColumn() - prevPawnEndPosition.getColumn() ) == 1) && ( startPosition.getRow() - prevPawnEndPosition.getRow() == 0)){
-//                            // then you should note that enpassant capture is possible this move!
-//                            int rowAdvancement = 0;
-//                            if (this.getBoard().getPiece( startPosition ).getTeamColor() == TeamColor.BLACK) {
-//                                rowAdvancement = -1;
-//                            } else if (this.getBoard().getPiece( startPosition ).getTeamColor() == TeamColor.WHITE) {
-//                                rowAdvancement = +1;
-//                            }
-//                            ChessPosition enPassantCapturePosition = new ChessPosition( startPosition.getRow() + rowAdvancement, prevPawnStartPosition.getColumn());
-//                            ChessMove enPassant = new ChessMove(startPosition, enPassantCapturePosition, null);
-//                            validMoves.add( enPassant );
-//                        }
-//                    }
-//                }
-//            }
             if (isEnPassantPossible( startPosition )){
                 ChessMove enPassant = formEnPassantMove( startPosition );
                 validMoves.add( enPassant );
+            }
+            if (this.canKingSideCastle( startPosition )){
+                ChessMove kingSideCastle = formKingSideCastleMove( startPosition );
+                validMoves.add( kingSideCastle );
+            }
+            if (this.canQueenSideCastle( startPosition )){
+                ChessMove queenSideCastle = formQueenSideCastleMove( startPosition );
+                validMoves.add( queenSideCastle );
             }
             return validMoves;
         }
@@ -160,7 +160,18 @@ public class ChessGame {
                 possibleMoves.add(enPassant);
             }
         }
-
+        if ((!this.investigatingCastle) && (this.canKingSideCastle( move.getStartPosition() ))){
+            ChessMove kingSideCastle = formKingSideCastleMove( move.getStartPosition() );
+            if (kingSideCastle != null){
+                possibleMoves.add(kingSideCastle);
+            }
+        }
+       if ((!this.investigatingCastle) && (this.canQueenSideCastle( move.getStartPosition()))){
+           ChessMove queenSideCastle = formQueenSideCastleMove( move.getStartPosition() );
+           if (queenSideCastle != null){
+               possibleMoves.add(queenSideCastle);
+           }
+       }
         if (! possibleMoves.contains( move ) ){
             throw new InvalidMoveException(String.format("%s is not a valid move for a %s", move.toString(), this.getBoard().getPiece( move.getStartPosition() ).toString()));
         }
@@ -178,10 +189,52 @@ public class ChessGame {
             if (isEnPassantPossible( move.getStartPosition() )){
                 this.getBoard().addPiece( this.getPrevMove().getEndPosition(), null);
             }
+            // record king movement record (for castling)
+            if ( this.getBoard().getPiece( move.getStartPosition() ).getPieceType() == ChessPiece.PieceType.KING ){
+                if (this.getTeamTurn() == TeamColor.WHITE){
+                    this.whiteKingMoved = true;
+                }
+                if (this.getTeamTurn() == TeamColor.BLACK){
+                    this.blackKingMoved = true;
+                }
+                // and record if king-side castling
+                if ((move.getStartPosition().getColumn()==5) && (move.getEndPosition().getColumn() == 7)){
+                    // move the rook
+                    this.getBoard().addPiece( new ChessPosition( move.getStartPosition().getRow(), 6), new ChessPiece( this.getTeamTurn(), ChessPiece.PieceType.ROOK));
+                    // and remove the rook
+                    this.getBoard().addPiece( new ChessPosition(move.getStartPosition().getRow(), 8), null);
+                }
+                // and record if queen-side castling
+                if ((move.getStartPosition().getColumn()==5) && (move.getEndPosition().getColumn() == 3)){
+                    // move the rook
+                    this.getBoard().addPiece( new ChessPosition( move.getStartPosition().getRow(), 4), new ChessPiece( this.getTeamTurn(), ChessPiece.PieceType.ROOK));
+                    // and remove the rook
+                    this.getBoard().addPiece( new ChessPosition( move.getStartPosition().getRow(), 1), null);
+                }
+            }
+            // record rook movement record (for castling)
+            if ( this.getBoard().getPiece( move.getStartPosition() ).getPieceType() == ChessPiece.PieceType.ROOK){
+                if (this.getTeamTurn() == TeamColor.WHITE){
+                    if ((move.getStartPosition().getRow() == 1) && (move.getStartPosition().getColumn() == 1)){
+                        this.whiteQueenSideRookMoved = true;
+                    }
+                    if ((move.getStartPosition().getRow() == 1) && (move.getStartPosition().getColumn() == 8)){
+                        this.whiteKingSideRookMoved = true;
+                    }
+                }
+                if (this.getTeamTurn() == TeamColor.BLACK){
+                    if ((move.getStartPosition().getRow() == 8) && (move.getStartPosition().getColumn() == 1)){
+                        this.blackQueenSideRookMoved = true;
+                    }
+                    if ((move.getStartPosition().getRow() == 8) && (move.getStartPosition().getColumn() == 8)){
+                        this.blackKingSideRookMoved = true;
+                    }
+                }
+            }
             // make the move on the actual gameboard
-            this.board.addPiece( move.getEndPosition(), new ChessPiece( this.getTeamTurn(), pieceType));
+            this.getBoard().addPiece( move.getEndPosition(), new ChessPiece( this.getTeamTurn(), pieceType));
             // and remove the piece from the starting square
-            this.board.addPiece( move.getStartPosition(), null);
+            this.getBoard().addPiece( move.getStartPosition(), null);
             // and record that the next team is up
             this.setTeamTurn( this.getTeamTurn() == TeamColor.WHITE ? TeamColor.BLACK: TeamColor.WHITE );
             // if you made an enpassant move, then the now extra copy of the captured pawn must be removed
@@ -249,6 +302,146 @@ public class ChessGame {
         ChessPosition enPassantCapturePosition = new ChessPosition( startPosition.getRow() + rowAdvancement, prevPawnStartPosition.getColumn());
         ChessMove enPassant = new ChessMove(startPosition, enPassantCapturePosition, null);
         return enPassant;
+    }
+
+    private ChessMove formKingSideCastleMove( ChessPosition kingStartPosition ){
+        ChessPosition endKingPosition;
+        if ((! canKingSideCastle( kingStartPosition) )){
+            return null;
+        }
+        // then you should note that king side castle is possible
+        if (this.getBoard().getPiece( kingStartPosition ).getTeamColor() == TeamColor.BLACK){
+            endKingPosition = new ChessPosition(8, 7);
+        } else {
+            endKingPosition = new ChessPosition(1, 7);
+        }
+            return new ChessMove(kingStartPosition, endKingPosition, null);
+    }
+
+    private ChessMove formQueenSideCastleMove( ChessPosition kingStartPosition ){
+        ChessPosition endKingPosition;
+        if ((! canQueenSideCastle( kingStartPosition) )){
+            return null;
+        }
+        // then you should note that king side castle is possible
+        if (this.getBoard().getPiece( kingStartPosition ).getTeamColor() == TeamColor.BLACK){
+            endKingPosition = new ChessPosition(8, 3);
+        } else {
+            endKingPosition = new ChessPosition(1, 3);
+        }
+        return new ChessMove(kingStartPosition, endKingPosition, null);
+    }
+
+    private boolean canKingSideCastle( ChessPosition kingStartPosition ) {
+        if (this.getBoard().getPiece( kingStartPosition ).getPieceType() != ChessPiece.PieceType.KING){
+            return false;
+        }
+        ChessPosition bishopSquare = new ChessPosition(8, 6);
+        ChessPosition knightSquare = new ChessPosition(8, 7);
+        ChessPosition rookSquare = new ChessPosition(8, 8);
+
+        if (this.getBoard().getPiece( kingStartPosition ).getTeamColor() == TeamColor.WHITE) {
+            bishopSquare = new ChessPosition(1, 6);
+            knightSquare = new ChessPosition(1, 7);
+            rookSquare = new ChessPosition(1, 8);
+            if (this.whiteKingMoved || this.whiteKingSideRookMoved || !kingStartPosition.equals( new ChessPosition( 1, 5))) {
+                return false;
+            }
+        } else {
+            if (this.blackKingMoved || this.blackKingSideRookMoved || !kingStartPosition.equals( new ChessPosition( 8, 5))){
+                return false;
+            }
+        }
+        if ((this.getBoard().getPiece(bishopSquare)==null) && (this.getBoard().getPiece(knightSquare)==null)){
+            // you can move... if not in check at any position!
+            if (! this.isInCheck( this.getTeamTurn() )){
+                ChessGame movedKing = new ChessGame( this );
+                // fixme should I catch these invalid move exceptions and treat them differently here?
+                try{
+                    movedKing.makeMove( new ChessMove( kingStartPosition, bishopSquare, null));
+                } catch (InvalidMoveException e){
+                    return false;
+                }
+                if ( movedKing.isInCheck( this.getTeamTurn() )){
+                    return false;
+                }
+                movedKing.setTeamTurn( this.getTeamTurn() != TeamColor.WHITE ? TeamColor.BLACK : TeamColor.WHITE );  // moving king one square at a time to ensure no check in path
+                try{
+                    movedKing.makeMove( new ChessMove( bishopSquare, knightSquare, null));
+                } catch (InvalidMoveException e){
+                    return false;
+                }
+                if ( movedKing.isInCheck( this.getTeamTurn()) ){
+                    return false;
+                }
+                // now try setting the rook
+                movedKing.getBoard().addPiece( bishopSquare, new ChessPiece( this.getTeamTurn(), ChessPiece.PieceType.ROOK));
+                // and remove the rook
+                movedKing.getBoard().addPiece( rookSquare, null);
+                if (movedKing.isInCheck( this.getTeamTurn())){
+                    return false;
+                }
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean canQueenSideCastle( ChessPosition kingStartPosition ){
+        if (this.getBoard().getPiece( kingStartPosition ).getPieceType() != ChessPiece.PieceType.KING){
+            return false;
+        }
+        ChessPosition queenSquare = new ChessPosition(8, 4);
+        ChessPosition bishopSquare = new ChessPosition(8, 3);
+        ChessPosition knightSquare = new ChessPosition(8, 2);
+        ChessPosition rookSquare = new ChessPosition(8, 1);
+
+        if (this.getBoard().getPiece( kingStartPosition ).getTeamColor() == TeamColor.WHITE) {
+            queenSquare = new ChessPosition(1, 4);
+            bishopSquare = new ChessPosition(1, 3);
+            knightSquare = new ChessPosition(1, 2);
+            rookSquare = new ChessPosition(1, 1);
+            if (this.whiteKingMoved || this.whiteQueenSideRookMoved || !kingStartPosition.equals( new ChessPosition( 1, 5))) {
+                return false;
+            }
+        } else {
+            if (this.blackKingMoved || this.blackQueenSideRookMoved || !kingStartPosition.equals( new ChessPosition( 8, 5))){
+                return false;
+            }
+        }
+        if ((this.getBoard().getPiece(queenSquare)==null) && (this.getBoard().getPiece(bishopSquare)==null) && (this.getBoard().getPiece(knightSquare)==null)){
+            // you can move... if not in check at any position!
+            if (! this.isInCheck( this.getTeamTurn() )){
+                ChessGame movedKing = new ChessGame( this );
+                // fixme should I catch these invalid move exceptions and treat them differently here?
+                try{
+                    movedKing.makeMove( new ChessMove( kingStartPosition, queenSquare, null));
+                } catch (InvalidMoveException e){
+                    return false;
+                }
+                if ( movedKing.isInCheck( this.getTeamTurn() )){
+                    return false;
+                }
+                movedKing.setTeamTurn( this.getTeamTurn() != TeamColor.WHITE ? TeamColor.BLACK: TeamColor.WHITE );  // moving king one square at a time to ensure no check in path
+                try{
+                    movedKing.makeMove( new ChessMove( queenSquare, bishopSquare, null));
+                } catch (InvalidMoveException e){
+                    return false;
+                }
+                if ( movedKing.isInCheck( this.getTeamTurn()) ){
+                    return false;
+                }
+                // now try setting the rook
+                movedKing.getBoard().addPiece( queenSquare, new ChessPiece( this.getTeamTurn(), ChessPiece.PieceType.ROOK));
+                // and remove the rook
+                movedKing.getBoard().addPiece( rookSquare, null);
+                if (movedKing.isInCheck( this.getTeamTurn())){
+                    return false;
+                }
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
