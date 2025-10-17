@@ -165,6 +165,12 @@ public class ChessGame {
 
     }
 
+    /**
+     * Determines if a move will place the current team in check
+     * @param myBoard
+     * @param myMove
+     * @return True if the move would result in check of its own team
+     */
     private boolean willMoveResultInCheck( ChessBoard myBoard, ChessMove myMove){
         ChessGame gameCopy = new ChessGame( this );
         ChessPiece.PieceType pieceType;
@@ -185,6 +191,11 @@ public class ChessGame {
         return gameCopy.isInCheck( pieceColor );
     }
 
+    /**
+     * Determines if an en passant move is possible; checks if an opposing pawn just moved two spaces, passing a pawn
+     * @param startPosition
+     * @return True if en passant move would be possible
+     */
     private boolean isEnPassantPossible( ChessPosition startPosition ) {
 
         // check for en passant for pawns
@@ -206,6 +217,11 @@ public class ChessGame {
         return false;
     }
 
+    /**
+     * Forms the ChessMove to move from startPosition to capture an opposing pawn en passant
+     * @param startPosition
+     * @return ChessMove from startPosition to the regular capture square without promotion piece
+     */
     private ChessMove formEnPassantMove( ChessPosition startPosition ){
         if (! isEnPassantPossible( startPosition )){
             return null;
