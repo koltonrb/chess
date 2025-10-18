@@ -111,6 +111,11 @@ public class PieceMovesCalculator {
         return possibleMoves;
     }
 
+    /**
+     * accounts for the fact that black pawns move down the board and white pawns move up the board
+     * @param teamColor
+     * @return the list of possible non-en-passant pawn moves
+     */
     private ArrayList<ChessMove> findPawnMoves(ChessGame.TeamColor teamColor){
         ArrayList<ChessMove> possibleMoves = new ArrayList<ChessMove>();
         boolean blockedAtOne = new Boolean(false);
