@@ -17,100 +17,54 @@ public class PieceMovesCalculator {
         return (rowOrCol < 1) || (rowOrCol > 8);
     }
 
-    public ArrayList<ChessMove> calculateBishopMoves(){
+    private ArrayList<ChessMove> calculateGridMoves(int rowIncrement, int colIncrement){
+        int row; // = position.getRow();
+        int col; // = position.getColumn();
         ArrayList<ChessMove> possibleMoves = new ArrayList<ChessMove>();
-        // search up and right
-        for (int row= position.getRow()+1; row<=8; row++){
+
+        for (int addend = 1; addend < 8; addend++) {
+            row = position.getRow() + addend * rowIncrement;
+            col = position.getColumn() + addend * colIncrement;
             if (offBoard( row )){
-                continue;
+                break;
             }
-            int col = position.getColumn() + ( row - position.getRow());
             if (offBoard( col )){
                 break;
             }
+
             ChessPosition newPosition = new ChessPosition( row, col );
 
-            if ((board.getPiece( newPosition ) != null)  && (board.getPiece( newPosition).getTeamColor() != board.getPiece( position ).getTeamColor())){
-                // enemy piece, can capture
-                possibleMoves.add(new ChessMove( position, newPosition, null));
-                break;
-            }
             if ((board.getPiece( newPosition ) != null) && (board.getPiece( newPosition).getTeamColor() == board.getPiece( position ).getTeamColor())) {
                 // friendly piece
                 break;
             }
             possibleMoves.add(new ChessMove( position, newPosition, null));
-        }
-
-        // search up and left
-        for (int row= position.getRow()+1; row<=8; row++){
-            if (offBoard( row )){
-                continue;
-            }
-            int col = position.getColumn() - ( row - position.getRow());
-            if (offBoard( col )){
-                break;
-            }
-            ChessPosition newPosition = new ChessPosition( row, col );
-
             if ((board.getPiece( newPosition ) != null)  && (board.getPiece( newPosition).getTeamColor() != board.getPiece( position ).getTeamColor())){
                 // enemy piece, can capture
-                possibleMoves.add(new ChessMove( position, newPosition, null));
                 break;
             }
-            if ((board.getPiece( newPosition ) != null) && (board.getPiece( newPosition).getTeamColor() == board.getPiece( position ).getTeamColor())) {
-                // friendly piece
-                break;
-            }
-            possibleMoves.add(new ChessMove( position, newPosition, null));
-        }
-
-        // now search down and left
-        for (int row= position.getRow()-1; row>=1; row--){
-            if (offBoard( row )){
-                continue;
-            }
-            int col = position.getColumn() - ( position.getRow() - row);
-            if ( offBoard( col )){
-                break;
-            }
-            ChessPosition newPosition = new ChessPosition( row, col );
-
-            if ((board.getPiece( newPosition ) != null)  && (board.getPiece( newPosition).getTeamColor() != board.getPiece( position ).getTeamColor())){
-                // enemy piece, can capture
-                possibleMoves.add(new ChessMove( position, newPosition, null));
-                break;
-            }
-            if ((board.getPiece( newPosition ) != null) && (board.getPiece( newPosition).getTeamColor() == board.getPiece( position ).getTeamColor())) {
-                // friendly piece
-                break;
-            }
-            possibleMoves.add(new ChessMove( position, newPosition, null));
-        }
-
-        // now search down and right
-        for (int row= position.getRow()-1; row>=1; row--){
-            if (offBoard( row )){
-                continue;
-            }
-            int col = position.getColumn() + ( position.getRow() - row);
-            if (offBoard( col )){
-                break;
-            }
-            ChessPosition newPosition = new ChessPosition( row, col );
-
-            if ((board.getPiece( newPosition ) != null)  && (board.getPiece( newPosition).getTeamColor() != board.getPiece( position ).getTeamColor())){
-                // enemy piece, can capture
-                possibleMoves.add(new ChessMove( position, newPosition, null));
-                break;
-            }
-            if ((board.getPiece( newPosition ) != null) && (board.getPiece( newPosition).getTeamColor() == board.getPiece( position ).getTeamColor())) {
-                // friendly piece
-                break;
-            }
-            possibleMoves.add(new ChessMove( position, newPosition, null));
+//            possibleMoves.add(new ChessMove( position, newPosition, null));
         }
         return possibleMoves;
+    }
+
+    public ArrayList<ChessMove> calculateBishopMoves() {
+        ArrayList<ChessMove> possibleMovesUpRight = new ArrayList<ChessMove>();
+        ArrayList<ChessMove> possibleMovesUpLeft = new ArrayList<ChessMove>();
+        ArrayList<ChessMove> possibleMovesDownLeft = new ArrayList<ChessMove>();
+        ArrayList<ChessMove> possibleMovesDownRight = new ArrayList<ChessMove>();
+
+        // search up and right
+        possibleMovesUpRight = calculateGridMoves(1, 1);
+        possibleMovesUpLeft = calculateGridMoves(1, -1);
+        possibleMovesDownLeft = calculateGridMoves(-1, -1);
+        possibleMovesDownRight = calculateGridMoves(-1, 1);
+
+        possibleMovesUpRight.addAll(possibleMovesUpLeft);
+        possibleMovesUpRight.addAll(possibleMovesDownLeft);
+        possibleMovesUpRight.addAll(possibleMovesDownRight);
+
+        return possibleMovesUpRight;
     }
 
     public ArrayList<ChessMove> calculatePerpendicularMoves() {
