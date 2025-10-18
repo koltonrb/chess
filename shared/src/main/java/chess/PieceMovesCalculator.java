@@ -17,6 +17,14 @@ public class PieceMovesCalculator {
         return (rowOrCol < 1) || (rowOrCol > 8);
     }
 
+    /**
+     * Searches along a single ray until an edge of the board or until another piece is encountered.
+     * returns a list of possible moves
+     * and accounts for if encountered pieces are friendly or enemy
+     * @param rowIncrement
+     * @param colIncrement
+     * @return
+     */
     private ArrayList<ChessMove> calculateGridMoves(int rowIncrement, int colIncrement){
         int row; // = position.getRow();
         int col; // = position.getColumn();
@@ -68,78 +76,21 @@ public class PieceMovesCalculator {
     }
 
     public ArrayList<ChessMove> calculatePerpendicularMoves() {
-        ArrayList<ChessMove> possibleMoves = new ArrayList<ChessMove>();
-        ArrayList<ChessPosition> piecesOnPerp = new ArrayList<>();
+        ArrayList<ChessMove> possibleMovesUp = new ArrayList<ChessMove>();
+        ArrayList<ChessMove> possibleMovesLeft = new ArrayList<ChessMove>();
+        ArrayList<ChessMove> possibleMovesDown = new ArrayList<ChessMove>();
+        ArrayList<ChessMove> possibleMovesRight = new ArrayList<ChessMove>();
 
-        // search above
-        for (int row = position.getRow() + 1; row <= 8; row++) {
-            if ((row < 1) && (row > 8)) {
-                continue;
-            }
-            ChessPosition newPosition = new ChessPosition(row, position.getColumn());
-            if ((board.getPiece(newPosition) != null) && (board.getPiece(newPosition).getTeamColor() != board.getPiece(position).getTeamColor())) {
-                // enemy, can capture but not pass
-                possibleMoves.add(new ChessMove(position, newPosition, null));
-                break;
-            }
-            if ((board.getPiece(newPosition) != null) && (board.getPiece(newPosition).getTeamColor() == board.getPiece(position).getTeamColor())) {
-                // friendly piece
-                break;
-            }
-            possibleMoves.add(new ChessMove(position, newPosition, null));
-        }
-        // search below
-        for (int row = position.getRow() - 1; row >= 1; row--) {
-            if ((row < 1) && (row > 8)) {
-                continue;
-            }
-            ChessPosition newPosition = new ChessPosition(row, position.getColumn());
-            if ((board.getPiece(newPosition) != null) && (board.getPiece(newPosition).getTeamColor() != board.getPiece(position).getTeamColor())) {
-                // enemy, can capture but not pass
-                possibleMoves.add(new ChessMove(position, newPosition, null));
-                break;
-            }
-            if ((board.getPiece(newPosition) != null) && (board.getPiece(newPosition).getTeamColor() == board.getPiece(position).getTeamColor())) {
-                // friendly piece
-                break;
-            }
-            possibleMoves.add(new ChessMove(position, newPosition, null));
-        }
-        // search left
-        for (int col = position.getColumn() - 1; col >= 1; col--) {
-            if ((col < 1) && (col > 8)) {
-                continue;
-            }
-            ChessPosition newPosition = new ChessPosition(position.getRow(), col);
-            if ((board.getPiece(newPosition) != null) && (board.getPiece(newPosition).getTeamColor() != board.getPiece(position).getTeamColor())) {
-                // enemy, can capture but not pass
-                possibleMoves.add(new ChessMove(position, newPosition, null));
-                break;
-            }
-            if ((board.getPiece(newPosition) != null) && (board.getPiece(newPosition).getTeamColor() == board.getPiece(position).getTeamColor())) {
-                // friendly piece
-                break;
-            }
-            possibleMoves.add(new ChessMove(position, newPosition, null));
-        }
-        // search right
-        for (int col = position.getColumn() + 1; col <= 8; col++) {
-            if ((col < 1) && (col > 8)) {
-                continue;
-            }
-            ChessPosition newPosition = new ChessPosition(position.getRow(), col);
-            if ((board.getPiece(newPosition) != null) && (board.getPiece(newPosition).getTeamColor() != board.getPiece(position).getTeamColor())) {
-                // enemy, can capture but not pass
-                possibleMoves.add(new ChessMove(position, newPosition, null));
-                break;
-            }
-            if ((board.getPiece(newPosition) != null) && (board.getPiece(newPosition).getTeamColor() == board.getPiece(position).getTeamColor())) {
-                // friendly piece
-                break;
-            }
-            possibleMoves.add(new ChessMove(position, newPosition, null));
-        }
-        return possibleMoves;
+        possibleMovesUp = calculateGridMoves(1, 0);
+        possibleMovesLeft = calculateGridMoves(0, -1);
+        possibleMovesDown = calculateGridMoves(-1, 0);
+        possibleMovesRight = calculateGridMoves(0, 1);
+
+        possibleMovesUp.addAll(possibleMovesLeft);
+        possibleMovesUp.addAll(possibleMovesDown);
+        possibleMovesUp.addAll(possibleMovesRight);
+
+        return possibleMovesUp;
     }
 
     public ArrayList<ChessMove> calculateQueenMoves(){
