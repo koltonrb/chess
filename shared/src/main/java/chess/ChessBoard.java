@@ -99,7 +99,7 @@ public class ChessBoard {
 
     @Override
     public String toString(){
-        Map<ChessPiece.PieceType, String> PIECE_TO_CHAR = Map.of(
+        Map<ChessPiece.PieceType, String> pieceToChar = Map.of(
                  ChessPiece.PieceType.PAWN, "p",
                  ChessPiece.PieceType.KNIGHT, "n",
                  ChessPiece.PieceType.ROOK, "r",
@@ -117,10 +117,10 @@ public class ChessBoard {
                 ChessPosition mySquare = new ChessPosition(row, col);
 
                 if ((getPiece(mySquare) != null) && (getPiece(mySquare).getTeamColor() == ChessGame.TeamColor.WHITE)){
-                    myStr = PIECE_TO_CHAR.get( getPiece(mySquare).getPieceType() );
+                    myStr = pieceToChar.get( getPiece(mySquare).getPieceType() );
                     myStr = String.valueOf(Character.toUpperCase( myStr.charAt(0) ));
                 } else if ((getPiece(mySquare) != null) && (getPiece(mySquare).getTeamColor() == ChessGame.TeamColor.BLACK)){
-                    myStr = PIECE_TO_CHAR.get( getPiece(mySquare).getPieceType() );
+                    myStr = pieceToChar.get( getPiece(mySquare).getPieceType() );
                 } else {
                     myStr = " ";
                 }

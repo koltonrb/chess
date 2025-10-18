@@ -11,15 +11,21 @@ public class PieceMovesCalculator {
         this.position = position;
     }
 
+    private boolean offBoard(int rowOrCol){
+        int lowerLimit = 1;
+        int upperLimit = 8;
+        return (rowOrCol < 1) || (rowOrCol > 8);
+    }
+
     public ArrayList<ChessMove> calculateBishopMoves(){
         ArrayList<ChessMove> possibleMoves = new ArrayList<ChessMove>();
         // search up and right
         for (int row= position.getRow()+1; row<=8; row++){
-            if ((row < 1) || (row >8)){
+            if (offBoard( row )){
                 continue;
             }
             int col = position.getColumn() + ( row - position.getRow());
-            if ((col < 1) || (col >8)){
+            if (offBoard( col )){
                 break;
             }
             ChessPosition newPosition = new ChessPosition( row, col );
@@ -38,11 +44,11 @@ public class PieceMovesCalculator {
 
         // search up and left
         for (int row= position.getRow()+1; row<=8; row++){
-            if ((row < 1) || (row >8)){
+            if (offBoard( row )){
                 continue;
             }
             int col = position.getColumn() - ( row - position.getRow());
-            if ((col < 1) || (col >8)){
+            if (offBoard( col )){
                 break;
             }
             ChessPosition newPosition = new ChessPosition( row, col );
@@ -61,11 +67,11 @@ public class PieceMovesCalculator {
 
         // now search down and left
         for (int row= position.getRow()-1; row>=1; row--){
-            if ((row < 1) || (row >8)){
+            if (offBoard( row )){
                 continue;
             }
             int col = position.getColumn() - ( position.getRow() - row);
-            if ((col < 1) || (col >8)){
+            if ( offBoard( col )){
                 break;
             }
             ChessPosition newPosition = new ChessPosition( row, col );
@@ -84,11 +90,11 @@ public class PieceMovesCalculator {
 
         // now search down and right
         for (int row= position.getRow()-1; row>=1; row--){
-            if ((row < 1) || (row >8)){
+            if (offBoard( row )){
                 continue;
             }
             int col = position.getColumn() + ( position.getRow() - row);
-            if ((col < 1) || (col >8)){
+            if (offBoard( col )){
                 break;
             }
             ChessPosition newPosition = new ChessPosition( row, col );
