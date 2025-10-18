@@ -145,8 +145,10 @@ public class ChessGame {
         }
 
         if (! possibleMoves.contains( move ) ){
-            throw new InvalidMoveException(String.format("%s is not a valid move for a %s", move.toString(), this.getBoard().getPiece( move.getStartPosition() ).toString()));
-        }
+            throw new InvalidMoveException(String.format("%s is not a valid move for a %s",
+                                                    move.toString(),
+                                                    this.getBoard().getPiece( move.getStartPosition() ).toString()));
+                                        }
         // does not place its own team into check
         // (or otherwise does not leave its own team in check)
         ChessPiece.PieceType pieceType;
