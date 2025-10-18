@@ -282,6 +282,29 @@ public class ChessGame {
     }
 
     /**
+     * examines a team piece by piece to see if there exists any moves on the current board
+     * not resulting in check
+     * @param teamColor
+     * @return true if the team can move; false otherwise
+     */
+    private boolean checkIfAnyValidMoves(TeamColor teamColor){
+        for (int row=1; row<=8; row++){
+            for (int col=1; col<=8; col++){
+                ChessPosition square = new ChessPosition(row, col);
+                if ((this.getBoard().getPiece( square ) != null) && (this.getBoard().getPiece( square ).getTeamColor() == teamColor)){
+                    ArrayList<ChessMove> validMoves = (ArrayList<ChessMove>) this.validMoves( square );
+                    if ((validMoves != null) && (validMoves.size() > 0)){
+                        // null returned if there are no moves from this square
+                        // so if we do find a valid move, then we are not in checkmate
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
+    /**
      * Determines if the given team is in checkmate
      *
      * @param teamColor which team to check for checkmate
@@ -292,22 +315,9 @@ public class ChessGame {
         if (isInCheck( teamColor )){
             // now look to see if you have any valid moves
             // start by finding your team's pieces
-            for (int row=1; row<=8; row++){
-                for (int col=1; col<=8; col++){
-                    ChessPosition square = new ChessPosition(row, col);
-                    if ((this.getBoard().getPiece( square ) != null) && (this.getBoard().getPiece( square ).getTeamColor() == teamColor)){
-                        ArrayList<ChessMove> validMoves = (ArrayList<ChessMove>) this.validMoves( square );
-                        if ((validMoves != null) && (validMoves.size() > 0)){
-                            // null returned if there are no moves from this square
-                            // so if we do find a valid move, then we are not in checkmate
-                            return false;
-                        }
-                    }
-                }
-            }
-            return true;
+            return checkIfAnyValidMoves(teamColor);
         }
-        return false;
+        return false;  // check mate requires check
     }
 
     /**
@@ -322,22 +332,9 @@ public class ChessGame {
         if (!isInCheck( teamColor )){
             // now look to see if you have any valid moves
             // start by finding your team's pieces
-            for (int row=1; row<=8; row++){
-                for (int col=1; col<=8; col++){
-                    ChessPosition square = new ChessPosition(row, col);
-                    if ((this.getBoard().getPiece( square ) != null) && (this.getBoard().getPiece( square ).getTeamColor() == teamColor)){
-                        ArrayList<ChessMove> validMoves = (ArrayList<ChessMove>) this.validMoves( square );
-                        if ((validMoves != null) && (validMoves.size() > 0)){
-                            // null returned if there are no moves from this square
-                            // so if we do find a valid move, then we are not in stalemate
-                            return false;
-                        }
-                    }
-                }
-            }
-            return true;
+            return checkIfAnyValidMoves(teamColor);
         }
-        return false;
+        return false;  // stalemate requires not in check
     }
 
     /**
