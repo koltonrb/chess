@@ -239,6 +239,10 @@ public class ChessGame {
         return enPassant;
     }
 
+    private boolean canKillKing(ChessPosition positionOfKing, ArrayList<ChessMove> enemyMoves){
+        final ChessPosition kingPosition = new ChessPosition(positionOfKing.getRow(), positionOfKing.getColumn());
+        return  enemyMoves.stream().anyMatch(move -> move.getEndPosition().equals( kingPosition ));
+    }
     /**
      * Determines if the given team is in check
      *
@@ -269,11 +273,9 @@ public class ChessGame {
                     // and we should check to see if it can attack the king
                     ChessPiece enemyPiece = this.getBoard().getPiece( square );
                     ArrayList<ChessMove> enemyMoves = (ArrayList<ChessMove>) enemyPiece.pieceMoves( this.getBoard(), square );
-                    for (ChessMove move : enemyMoves){
-                        // check to see if enemyPiece can get to myKingPosition
-                        if (move.getEndPosition().equals( myKingPosition )){
-                            return true;
-                        }
+                    boolean canCheckKing = canKillKing(myKingPosition, enemyMoves);
+                    if (canCheckKing){
+                        return true;
                     }
                 }
             }
