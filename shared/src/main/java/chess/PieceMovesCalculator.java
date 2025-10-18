@@ -42,12 +42,14 @@ public class PieceMovesCalculator {
 
             ChessPosition newPosition = new ChessPosition( row, col );
 
-            if ((board.getPiece( newPosition ) != null) && (board.getPiece( newPosition).getTeamColor() == board.getPiece( position ).getTeamColor())) {
+            if ((board.getPiece( newPosition ) != null)
+                    && (board.getPiece( newPosition).getTeamColor() == board.getPiece( position ).getTeamColor())) {
                 // friendly piece
                 break;
             }
             possibleMoves.add(new ChessMove( position, newPosition, null));
-            if ((board.getPiece( newPosition ) != null)  && (board.getPiece( newPosition).getTeamColor() != board.getPiece( position ).getTeamColor())){
+            if ((board.getPiece( newPosition ) != null)
+                    && (board.getPiece( newPosition).getTeamColor() != board.getPiece( position ).getTeamColor())){
                 // enemy piece, can capture
                 break;
             }
@@ -107,7 +109,8 @@ public class PieceMovesCalculator {
     public ArrayList<ChessMove> calculateKingMoves(){
         ArrayList<ChessMove> possibleMoves = new ArrayList<ChessMove>();
         possibleMoves = calculateQueenMoves();
-        possibleMoves.removeIf(m->(Math.abs(m.getEndPosition().getRow() - position.getRow()) > 1) || (Math.abs(m.getEndPosition().getColumn() - position.getColumn() )> 1));
+        possibleMoves.removeIf(m->(Math.abs(m.getEndPosition().getRow() - position.getRow()) > 1)
+                                || (Math.abs(m.getEndPosition().getColumn() - position.getColumn() )> 1));
         return possibleMoves;
     }
 
@@ -233,7 +236,8 @@ public class PieceMovesCalculator {
         possibleMoves.removeIf(m->m.getEndPosition().getColumn() > 8);
 
         // check that end positions are not occupied by a friendly piece
-        possibleMoves.removeIf(m->((board.getPiece(m.getEndPosition()) != null) && (board.getPiece(m.getEndPosition()).getTeamColor() == board.getPiece( position ).getTeamColor())));
+        possibleMoves.removeIf(m->((board.getPiece(m.getEndPosition()) != null)
+                && (board.getPiece(m.getEndPosition()).getTeamColor() == board.getPiece( position ).getTeamColor())));
 
         return possibleMoves;
 
