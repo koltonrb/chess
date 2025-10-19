@@ -1,6 +1,10 @@
 package server;
 
 import io.javalin.*;
+import io.javalin.http.Context;
+import model.AuthData;
+import model.UserData;
+import service.RegisterService;
 
 public class Server {
 
@@ -20,5 +24,14 @@ public class Server {
 
     public void stop() {
         javalin.stop();
+    }
+
+    public void register(){
+        javalin.post("/user", ctx -> {
+            UserData userRequest = ctx.bodyAsClass(UserData.class);
+            RegisterService service = new RegisterService();
+            AuthData result = service.register(userRequest);
+            ctx.status(200).json(result);
+        });
     }
 }
