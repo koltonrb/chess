@@ -1,17 +1,18 @@
 package server;
 
 import io.javalin.*;
-import io.javalin.http.Context;
 import model.AuthData;
 import model.UserData;
-import service.RegisterService;
+import service.UserService;
 
 public class Server {
 
     private final Javalin javalin;
+    private final UserService userService;
 
-    public Server() {
+    public Server(UserService userService) {
         javalin = Javalin.create(config -> config.staticFiles.add("web"));
+        this.userService = userService;
 
         // Register your endpoints and exception handlers here.
 
@@ -26,12 +27,12 @@ public class Server {
         javalin.stop();
     }
 
-    public void register(){
-        javalin.post("/user", ctx -> {
-            UserData userRequest = ctx.bodyAsClass(UserData.class);
-            RegisterService service = new RegisterService();
-            AuthData result = service.register(userRequest);
-            ctx.status(200).json(result);
-        });
-    }
+//    public void register(){
+//        javalin.post("/user", ctx -> {
+//            UserData userRequest = ctx.bodyAsClass(UserData.class);
+//            UserService service = new UserService();
+//            AuthData result = service.register(userRequest);
+//            ctx.status(200).json(result);
+//        });
+//    }
 }
