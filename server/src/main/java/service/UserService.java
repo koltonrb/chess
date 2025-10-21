@@ -19,7 +19,7 @@ public class UserService {
             if (userData != null){
                 throw new DataAccessException("Username already exists");
             }
-            
+            UserData createdUser = dataAccess.createUser( registerRequest );
         }
 //        public LoginResult login(LoginRequest loginRequest) {}
 //        public void logout(LogoutRequest logoutRequest) {}
