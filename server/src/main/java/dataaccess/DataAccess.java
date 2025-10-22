@@ -1,9 +1,10 @@
 package dataaccess;
 
-import model.RegisterRequest;
+import model.AuthData;
 import model.UserData;
 
 public interface DataAccess {
     UserData getUser(String username) throws DataAccessException;
-    UserData createUser(RegisterRequest);
+    void createUser(UserData userData) throws DataAccessException;
+    void createAuth(AuthData authData) throws DataAccessException;
 }
