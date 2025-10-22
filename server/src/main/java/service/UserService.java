@@ -1,5 +1,6 @@
 package service;
 
+import dataaccess.AlreadyTakenException;
 import dataaccess.DataAccess;
 import dataaccess.DataAccessException;
 import model.AuthData;
@@ -22,7 +23,7 @@ public class UserService {
 
             UserData userData = dataAccess.getUser(registerRequest.username());
             if (userData != null) {
-                throw new DataAccessException("Username already exists");
+                throw new AlreadyTakenException("Username already exists");
             }
             UserData userToCreate = new UserData(registerRequest.username(),
                     registerRequest.password(),

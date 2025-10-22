@@ -17,7 +17,7 @@ public class Main {
 //            }
 
             var userService = new UserService(dataAccess);
-            var server = new Server(userService);
+            var server = new Server(userService, dataAccess);
             server.run(port);
             System.out.println("♕ 240 Chess Server");
             return;
