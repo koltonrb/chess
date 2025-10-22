@@ -1,8 +1,10 @@
 package service;
 
 import dataaccess.AlreadyTakenException;
+import dataaccess.BadRequestException;
 import dataaccess.DataAccess;
 import dataaccess.DataAccessException;
+import io.javalin.http.BadRequestResponse;
 import model.AuthData;
 import model.RegisterRequest;
 import model.RegisterResult;
@@ -18,9 +20,14 @@ public class UserService {
         this.dataAccess = dataAccess;
     }
 
-    public RegisterResult register(RegisterRequest registerRequest) throws DataAccessException {
+    public RegisterResult register(RegisterRequest registerRequest) throws BadRequestException, AlreadyTakenException,
+            DataAccessException {
         // TODO this should throw an exception?  Or the data access method itself?
-
+        if ((registerRequest.username() == null)
+                || (registerRequest.password() == null)
+                || (registerRequest.email() == null)){
+            throw new BadRequestException("Bad Request");
+        }
         UserData userData = dataAccess.getUser(registerRequest.username());
         if (userData != null) {
             throw new AlreadyTakenException("Username already exists");

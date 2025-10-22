@@ -1,11 +1,9 @@
 package server;
 
 import com.google.gson.Gson;
-import dataaccess.AlreadyTakenException;
-import dataaccess.DataAccess;
-import dataaccess.DataAccessException;
-import dataaccess.MemoryDataAccess;
+import dataaccess.*;
 import io.javalin.*;
+import io.javalin.http.BadRequestResponse;
 import io.javalin.http.Context;
 import model.ClearRequest;
 import model.ClearResult;
@@ -32,7 +30,8 @@ public class Server {
         this.httpHandler = Javalin.create(config -> config.staticFiles.add("web"))
                 .post("/user", this::registerUser)
                 .delete("/db", this::clearDatabase)
-                .exception(AlreadyTakenException.class, this::alreadyTakenExceptionHandler);
+                .exception(AlreadyTakenException.class, this::alreadyTakenExceptionHandler)
+                .exception(BadRequestException.class, this::badRequestExceptionHandler);
     }
 
 //    public Server(UserService userService, DataAccess dataAccess) {
@@ -65,6 +64,11 @@ public class Server {
     // TODO add exception handler here
     private void alreadyTakenExceptionHandler(AlreadyTakenException ex, Context ctx){
         ctx.status(403);
+        ctx.result(exceptionToJSON(ex));
+    }
+
+    private void badRequestExceptionHandler(BadRequestException ex, Context ctx){
+        ctx.status(400);
         ctx.result(exceptionToJSON(ex));
     }
 
