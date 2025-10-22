@@ -1,14 +1,8 @@
 package service;
 
-import dataaccess.AlreadyTakenException;
-import dataaccess.BadRequestException;
-import dataaccess.DataAccess;
-import dataaccess.DataAccessException;
+import dataaccess.*;
 import io.javalin.http.BadRequestResponse;
-import model.AuthData;
-import model.RegisterRequest;
-import model.RegisterResult;
-import model.UserData;
+import model.*;
 
 import java.util.UUID;
 
@@ -46,7 +40,25 @@ public class UserService {
         // now get ready to return
         return new RegisterResult(authData.authToken(), authData.username());
     }
-//        public LoginResult login(LoginRequest loginRequest) {}
+    public LoginResult login(LoginRequest loginRequest) throws BadRequestException, DataAccessException {
+
+        if ((loginRequest.username() == null) || (loginRequest.password() == null)){
+            throw new BadRequestException("Bad Request");
+        }
+        UserData user = dataAccess.getUser(loginRequest.username() );
+
+        if ((user == null) || (!loginRequest.password().equals(user.password())) ){
+            throw new UnauthorizedException("unauthorized");
+        }
+
+        // now let's make the user some authorization data
+        String authToken = UUID.randomUUID().toString();
+        AuthData authData = new AuthData(authToken, user.username());
+        dataAccess.createAuth( authData );
+
+        return new LoginResult(authData.username(), authData.authToken());
+
+    }
 //        public void logout(LogoutRequest logoutRequest) {}
 }
 

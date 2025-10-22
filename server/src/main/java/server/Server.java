@@ -5,10 +5,7 @@ import dataaccess.*;
 import io.javalin.*;
 import io.javalin.http.BadRequestResponse;
 import io.javalin.http.Context;
-import model.ClearRequest;
-import model.ClearResult;
-import model.RegisterRequest;
-import model.RegisterResult;
+import model.*;
 import service.ClearService;
 import service.UserService;
 
@@ -29,9 +26,11 @@ public class Server {
         // Register your endpoints and exception handlers here.
         this.httpHandler = Javalin.create(config -> config.staticFiles.add("web"))
                 .post("/user", this::registerUser)
+                .post("/session", this::loginUser)
                 .delete("/db", this::clearDatabase)
                 .exception(AlreadyTakenException.class, this::alreadyTakenExceptionHandler)
-                .exception(BadRequestException.class, this::badRequestExceptionHandler);
+                .exception(BadRequestException.class, this::badRequestExceptionHandler)
+                .exception(UnauthorizedException.class, this::unauthorizedExceptionHandler);
     }
 
 //    public Server(UserService userService, DataAccess dataAccess) {
@@ -72,10 +71,24 @@ public class Server {
         ctx.result(exceptionToJSON(ex));
     }
 
-    private void registerUser(Context ctx) throws DataAccessException {
+    private void unauthorizedExceptionHandler(UnauthorizedException ex, Context ctx){
+        ctx.status(401);
+        ctx.result(exceptionToJSON(ex));
+    }
+
+    private void registerUser(Context ctx) throws BadRequestException, AlreadyTakenException,
+            DataAccessException {
         RegisterRequest user = new Gson().fromJson(ctx.body(), RegisterRequest.class);
         RegisterResult userResult = userService.register( user );
         ctx.status(200).json(new Gson().toJson(userResult));
+    }
+
+    private void loginUser(Context ctx) throws BadRequestException, AlreadyTakenException,
+            DataAccessException {
+        LoginRequest user = new Gson().fromJson(ctx.body(), LoginRequest.class);
+        LoginResult userResult = userService.login( user );
+        ctx.status(200).json(new Gson().toJson(userResult));
+
     }
 
     private void clearDatabase(Context ctx) {
