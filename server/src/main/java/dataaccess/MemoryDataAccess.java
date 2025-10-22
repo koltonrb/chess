@@ -1,6 +1,7 @@
 package dataaccess;
 
 import model.AuthData;
+import model.ClearRequest;
 import model.UserData;
 
 import java.util.HashMap;
@@ -19,5 +20,10 @@ public class MemoryDataAccess implements DataAccess {
 
     public void createAuth(AuthData authData ){
         authorizations.put(authData.username(), authData);
+    }
+
+    public void clear(ClearRequest request){
+        users.clear();
+        authorizations.clear();
     }
 }

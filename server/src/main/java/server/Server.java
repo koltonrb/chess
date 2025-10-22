@@ -7,8 +7,11 @@ import dataaccess.DataAccessException;
 import dataaccess.MemoryDataAccess;
 import io.javalin.*;
 import io.javalin.http.Context;
+import model.ClearRequest;
+import model.ClearResult;
 import model.RegisterRequest;
 import model.RegisterResult;
+import service.ClearService;
 import service.UserService;
 
 import java.util.HashMap;
@@ -18,26 +21,30 @@ public class Server {
     private final Javalin httpHandler;
     private final UserService userService;
     private final DataAccess dataAccess;
+    private final ClearService clearService;
 
     public Server(){
         this.dataAccess = new MemoryDataAccess();
         this.userService = new UserService(this.dataAccess);
+        this.clearService = new ClearService(this.dataAccess);
 
         // Register your endpoints and exception handlers here.
         this.httpHandler = Javalin.create(config -> config.staticFiles.add("web"))
                 .post("/user", this::registerUser)
+                .delete("/db", this::clearDatabase)
                 .exception(AlreadyTakenException.class, this::alreadyTakenExceptionHandler);
     }
 
-    public Server(UserService userService, DataAccess dataAccess) {
-        this.userService = userService;
-        this.dataAccess = dataAccess;
-
-        // Register your endpoints and exception handlers here.
-        this.httpHandler = Javalin.create(config -> config.staticFiles.add("web"))
-                .post("/user", this::registerUser)
-                .exception(AlreadyTakenException.class, this::alreadyTakenExceptionHandler);
-    }
+//    public Server(UserService userService, DataAccess dataAccess) {
+//        this.userService = userService;
+//        this.dataAccess = dataAccess;
+//        this.clearService = clearService;
+//
+//        // Register your endpoints and exception handlers here.
+//        this.httpHandler = Javalin.create(config -> config.staticFiles.add("web"))
+//                .post("/user", this::registerUser)
+//                .exception(AlreadyTakenException.class, this::alreadyTakenExceptionHandler);
+//    }
 
     public int run(int desiredPort) {
         httpHandler.start(desiredPort);
@@ -67,15 +74,10 @@ public class Server {
         ctx.status(200).json(new Gson().toJson(userResult));
     }
 
+    private void clearDatabase(Context ctx) {
+        ClearRequest request = new Gson().fromJson(ctx.body(), ClearRequest.class);
+        ClearResult result = clearService.clear(request);
+        ctx.status(200).json(new Gson().toJson( result ));
+    }
 
-
-
-//    public void register(){
-//        javalin.post("/user", ctx -> {
-//            UserData userRequest = ctx.bodyAsClass(UserData.class);
-//            UserService service = new UserService();
-//            AuthData result = service.register(userRequest);
-//            ctx.status(200).json(result);
-//        });
-//    }
 }

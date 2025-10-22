@@ -16,8 +16,9 @@ public class Main {
 //                dataAccess = new MySqlDataAccess();
 //            }
 
-            var userService = new UserService(dataAccess);
-            var server = new Server(userService, dataAccess);
+//            var userService = new UserService(dataAccess);
+//            var server = new Server(userService, dataAccess);
+            var server = new Server();
             server.run(port);
             System.out.println("♕ 240 Chess Server");
             return;
