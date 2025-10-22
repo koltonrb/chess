@@ -1,9 +1,6 @@
 package service;
 
-import dataaccess.AlreadyTakenException;
-import dataaccess.DataAccess;
-import dataaccess.DataAccessException;
-import dataaccess.MemoryDataAccess;
+import dataaccess.*;
 import model.*;
 import org.eclipse.jetty.server.Authentication;
 import org.junit.jupiter.api.Assertions;
@@ -19,27 +16,29 @@ class UserServiceTest {
     private DataAccess dataAccess;
     private UserService userService;
     private ClearService clearService;
+    private RegisterResult initialRegisterResult;
 
     @BeforeEach
-    void setUpService(){
+    void setUpService() throws DataAccessException {
         this.dataAccess = new MemoryDataAccess();
         this.userService = new UserService(dataAccess);
         this.clearService = new ClearService(dataAccess);
+
+        RegisterRequest request = new RegisterRequest("Kolton",
+                "secretPassword!",
+                "koltonrb@byu.edu");
+
+        this.initialRegisterResult = this.userService.register( request );
     }
 
     @Test
     @DisplayName("positive register")
     void positiveRegister() throws DataAccessException {
-        RegisterRequest request = new RegisterRequest("Kolton",
-                "secretPassword!",
-                "koltonrb@byu.edu");
 
-        RegisterResult result = this.userService.register( request );
-
-        Assertions.assertNotNull(result, "Returned user is not null, should not be null");
-        Assertions.assertInstanceOf(RegisterResult.class, result, "Service returns RegisterRequest object");
-        Assertions.assertNotNull(result.authToken(), "Returned AuthToken is not null, should not be null");
-        Assertions.assertTrue(result.authToken().length() == 36,
+        Assertions.assertNotNull(this.initialRegisterResult, "Returned user is not null, should not be null");
+        Assertions.assertInstanceOf(RegisterResult.class, this.initialRegisterResult, "Service returns RegisterRequest object");
+        Assertions.assertNotNull(this.initialRegisterResult.authToken(), "Returned AuthToken is not null, should not be null");
+        Assertions.assertTrue(this.initialRegisterResult.authToken().length() == 36,
                 "The authtoken is a string with 36 characters");
 
         // now did it also add the user to memory?
@@ -56,7 +55,6 @@ class UserServiceTest {
                 "secretPassword!",
                 "koltonrb@byu.edu");
 
-        RegisterResult result = this.userService.register( request );
         AlreadyTakenException myException = Assertions.assertThrows(AlreadyTakenException.class,
                 () -> userService.register( request ),
                 "matching users should not be able to register and should throw an error");
@@ -70,12 +68,6 @@ class UserServiceTest {
 
         ClearRequest clearRequest = new ClearRequest("");
 
-        RegisterRequest registerRequest = new RegisterRequest("Kolton",
-                "secretPassword!",
-                "koltonrb@byu.edu");
-
-        RegisterResult result = this.userService.register( registerRequest );
-
         Assertions.assertNotEquals(emptyUsers, this.dataAccess.getUsers(), "User not registered" );
         Assertions.assertNotEquals(emptyAuth, this.dataAccess.getAuthorizations(),
                 "AuthData not saved correctly");
@@ -86,5 +78,24 @@ class UserServiceTest {
         Assertions.assertEquals(emptyAuth, this.dataAccess.getAuthorizations(),
                 "AuthData not emptied");
 
+    }
+
+    @Test
+    @DisplayName("positive login")
+    void positiveLogin() throws DataAccessException {
+        LoginRequest loginRequest = new LoginRequest("Kolton", "secretPassword!");
+        LoginResult loginResult = this.userService.login(loginRequest);
+        Assertions.assertNotNull(loginResult, "login result should not be null");
+        Assertions.assertNotNull(loginResult.authToken(), "authtoken should not be null");
+        Assertions.assertEquals(loginRequest.username(), loginResult.username(), "username changed");
+    }
+
+    @Test
+    @DisplayName("negative login")
+    void negativeLogin() throws DataAccessException {
+        LoginRequest loginRequest = new LoginRequest("Kolton", "notMyPassword");
+        UnauthorizedException myException = Assertions.assertThrows(UnauthorizedException.class,
+                () -> this.userService.login( loginRequest ),
+                "should throw an UnauthorizedException mismatched username/password combinations");
     }
 }
