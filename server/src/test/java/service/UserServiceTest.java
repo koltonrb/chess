@@ -98,4 +98,25 @@ class UserServiceTest {
                 () -> this.userService.login( loginRequest ),
                 "should throw an UnauthorizedException mismatched username/password combinations");
     }
+
+    @Test
+    @DisplayName("positive logout")
+    void positiveLogout() throws DataAccessException{
+        LoginRequest loginRequest = new LoginRequest("Kolton", "secretPassword!");
+        LoginResult loginResult = this.userService.login(loginRequest);
+        LogoutRequest logoutRequest = new LogoutRequest();
+        LogoutResult logoutResult = this.userService.logout(logoutRequest, loginResult.authToken());
+        Assertions.assertNotNull(logoutResult, "Should return LogoutResult, not null");
+        Assertions.assertInstanceOf(LogoutResult.class, logoutResult, "Should return LogoutResult object");
+    }
+
+    @Test
+    @DisplayName("negative logout")
+    void negativeLogout() throws DataAccessException {
+        LoginRequest loginRequest = new LoginRequest("Kolton", "secretPassword!");
+        LoginResult loginResult = this.userService.login(loginRequest);
+        LogoutRequest logoutRequest = new LogoutRequest();
+        UnauthorizedException myException = Assertions.assertThrows(UnauthorizedException.class,
+                () -> this.userService.logout(logoutRequest, "NOTMYAUTHTOKEN"));
+    }
 }
