@@ -28,6 +28,7 @@ public class Server {
                 .post("/user", this::registerUser)
                 .post("/session", this::loginUser)
                 .delete("/db", this::clearDatabase)
+                .delete("/session", this::logoutUser)
                 .exception(AlreadyTakenException.class, this::alreadyTakenExceptionHandler)
                 .exception(BadRequestException.class, this::badRequestExceptionHandler)
                 .exception(UnauthorizedException.class, this::unauthorizedExceptionHandler);
@@ -89,6 +90,13 @@ public class Server {
         LoginResult userResult = userService.login( user );
         ctx.status(200).json(new Gson().toJson(userResult));
 
+    }
+
+    private void logoutUser(Context ctx) throws UnauthorizedException, DataAccessException {
+        String authToken = ctx.header("authorization");
+        LogoutRequest user = new Gson().fromJson(ctx.body(), LogoutRequest.class);
+        LogoutResult userResult = userService.logout( user, authToken );
+        ctx.status(200).json(new Gson().toJson(userResult));
     }
 
     private void clearDatabase(Context ctx) {

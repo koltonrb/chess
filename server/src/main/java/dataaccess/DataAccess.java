@@ -9,6 +9,8 @@ import java.util.HashMap;
 public interface DataAccess {
     HashMap<String, UserData> getUsers();
     public HashMap<String, AuthData> getAuthorizations();
+    public AuthData getAuth(String authToken) throws DataAccessException;
+    void deleteAuth(AuthData authData) throws DataAccessException;
     UserData getUser(String username) throws DataAccessException;
     void createUser(UserData userData) throws DataAccessException;
     void createAuth(AuthData authData) throws DataAccessException;
