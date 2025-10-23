@@ -4,6 +4,8 @@ import dataaccess.*;
 import io.javalin.http.BadRequestResponse;
 import model.*;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 public class UserService {
@@ -70,6 +72,8 @@ public class UserService {
         return new LogoutResult();
 
     }
+
+
 //        public void logout(LogoutRequest logoutRequest) {}
 }
 

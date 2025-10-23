@@ -7,6 +7,7 @@ import io.javalin.http.BadRequestResponse;
 import io.javalin.http.Context;
 import model.*;
 import service.ClearService;
+import service.GameService;
 import service.UserService;
 
 import java.util.HashMap;
@@ -16,11 +17,13 @@ public class Server {
     private final Javalin httpHandler;
     private final UserService userService;
     private final DataAccess dataAccess;
+    private final GameService gameService;
     private final ClearService clearService;
 
     public Server(){
         this.dataAccess = new MemoryDataAccess();
         this.userService = new UserService(this.dataAccess);
+        this.gameService = new GameService(this.dataAccess);
         this.clearService = new ClearService(this.dataAccess);
 
         // Register your endpoints and exception handlers here.
@@ -29,6 +32,8 @@ public class Server {
                 .post("/session", this::loginUser)
                 .delete("/db", this::clearDatabase)
                 .delete("/session", this::logoutUser)
+                .post("/game", this::createGame)
+                .get("/game", this::listGames)
                 .exception(AlreadyTakenException.class, this::alreadyTakenExceptionHandler)
                 .exception(BadRequestException.class, this::badRequestExceptionHandler)
                 .exception(UnauthorizedException.class, this::unauthorizedExceptionHandler);
@@ -97,6 +102,21 @@ public class Server {
         LogoutRequest user = new Gson().fromJson(ctx.body(), LogoutRequest.class);
         LogoutResult userResult = userService.logout( user, authToken );
         ctx.status(200).json(new Gson().toJson(userResult));
+    }
+
+    private void createGame(Context ctx) throws DataAccessException {
+        String authToken = ctx.header("authorization");
+        CreateGameRequest request = new Gson().fromJson(ctx.body(), CreateGameRequest.class);
+        CreateGameResult result = gameService.createGame( request, authToken);
+        ctx.status(200).json(new Gson().toJson( result ));
+
+    }
+
+    private void listGames(Context ctx) throws DataAccessException {
+        String authToken = ctx.header("authorization");
+        ListGamesRequest request = new Gson().fromJson(ctx.body(), ListGamesRequest.class);
+        ListGamesResult result = gameService.listGames( request, authToken );
+        ctx.status(200).json(new Gson().toJson( result ));
     }
 
     private void clearDatabase(Context ctx) {

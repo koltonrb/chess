@@ -2,8 +2,10 @@ package dataaccess;
 
 import model.AuthData;
 import model.ClearRequest;
+import model.GameData;
 import model.UserData;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 public interface DataAccess {
@@ -14,5 +16,7 @@ public interface DataAccess {
     UserData getUser(String username) throws DataAccessException;
     void createUser(UserData userData) throws DataAccessException;
     void createAuth(AuthData authData) throws DataAccessException;
+    GameData createGame(String gameName) throws DataAccessException;
+    ArrayList<GameData> listGames() throws DataAccessException;
     void clear(ClearRequest request);
 }
