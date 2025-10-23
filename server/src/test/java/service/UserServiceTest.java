@@ -1,19 +1,17 @@
 package service;
 
+import Requests.*;
+import Results.*;
 import chess.ChessGame;
 import dataaccess.*;
 import model.*;
-import org.eclipse.jetty.server.Authentication;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import javax.xml.crypto.Data;
 import java.util.ArrayList;
 import java.util.HashMap;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 class UserServiceTest {
     private DataAccess dataAccess;
@@ -148,13 +146,13 @@ class UserServiceTest {
     @Test
     @DisplayName("positive listGames")
     void positiveListGames() throws DataAccessException{
-        ArrayList<GameData>  expected_game = new ArrayList<>();
-        expected_game.add(new GameData(1,
+        ArrayList<GameData>  expectedGame = new ArrayList<>();
+        expectedGame.add(new GameData(1,
                 null,
                 null,
                 "BattleFrontII",
                 new ChessGame()));
-        ListGamesResult expected_result = new ListGamesResult(expected_game);
+        ListGamesResult expectedResult = new ListGamesResult(expectedGame);
 
         CreateGameRequest createGameRequest = new CreateGameRequest("BattleFrontII");
         CreateGameResult createGameResult = this.gameService.createGame(createGameRequest,
@@ -162,7 +160,7 @@ class UserServiceTest {
         ListGamesRequest listGamesRequest = new ListGamesRequest();
         ListGamesResult listGamesResult = this.gameService.listGames(listGamesRequest,
                 this.initialRegisterResult.authToken());
-        Assertions.assertEquals(expected_result, listGamesResult, "un expected ListGamesResult");
+        Assertions.assertEquals(expectedResult, listGamesResult, "un expected ListGamesResult");
     }
 
     @Test

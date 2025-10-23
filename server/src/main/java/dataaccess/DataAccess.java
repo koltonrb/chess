@@ -1,7 +1,7 @@
 package dataaccess;
 
 import model.AuthData;
-import model.ClearRequest;
+import Requests.ClearRequest;
 import model.GameData;
 import model.UserData;
 

@@ -12,12 +12,6 @@ public class Main {
             }
 
             DataAccess dataAccess = new MemoryDataAccess();
-//            if (args.length >= 2 && args[1].equals("sql")){
-//                dataAccess = new MySqlDataAccess();
-//            }
-
-//            var userService = new UserService(dataAccess);
-//            var server = new Server(userService, dataAccess);
             var server = new Server();
             server.run(port);
             System.out.println("♕ 240 Chess Server");

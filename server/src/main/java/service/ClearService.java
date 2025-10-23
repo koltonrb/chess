@@ -1,8 +1,8 @@
 package service;
 
 import dataaccess.DataAccess;
-import model.ClearRequest;
-import model.ClearResult;
+import Requests.ClearRequest;
+import Results.ClearResult;
 
 public class ClearService {
     private final DataAccess dataAccess;

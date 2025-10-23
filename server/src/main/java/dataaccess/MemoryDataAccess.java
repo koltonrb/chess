@@ -2,13 +2,12 @@ package dataaccess;
 
 import chess.ChessGame;
 import model.AuthData;
-import model.ClearRequest;
+import Requests.ClearRequest;
 import model.GameData;
 import model.UserData;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 
 public class MemoryDataAccess implements DataAccess {
 

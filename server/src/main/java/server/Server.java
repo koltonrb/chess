@@ -1,11 +1,11 @@
 package server;
 
+import Requests.*;
+import Results.*;
 import com.google.gson.Gson;
 import dataaccess.*;
 import io.javalin.*;
-import io.javalin.http.BadRequestResponse;
 import io.javalin.http.Context;
-import model.*;
 import service.ClearService;
 import service.GameService;
 import service.UserService;
@@ -40,17 +40,6 @@ public class Server {
                 .exception(UnauthorizedException.class, this::unauthorizedExceptionHandler);
     }
 
-//    public Server(UserService userService, DataAccess dataAccess) {
-//        this.userService = userService;
-//        this.dataAccess = dataAccess;
-//        this.clearService = clearService;
-//
-//        // Register your endpoints and exception handlers here.
-//        this.httpHandler = Javalin.create(config -> config.staticFiles.add("web"))
-//                .post("/user", this::registerUser)
-//                .exception(AlreadyTakenException.class, this::alreadyTakenExceptionHandler);
-//    }
-
     public int run(int desiredPort) {
         httpHandler.start(desiredPort);
         return httpHandler.port();  // pet shop returns 'this'?
@@ -67,7 +56,7 @@ public class Server {
         errorHash.put("message", "Error: " + ex.getMessage() );
         return new Gson().toJson(errorHash);
     }
-    // TODO add exception handler here
+
     private void alreadyTakenExceptionHandler(AlreadyTakenException ex, Context ctx){
         ctx.status(403);
         ctx.result(exceptionToJSON(ex));

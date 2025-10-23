@@ -1,11 +1,14 @@
 package service;
 
+import Requests.LoginRequest;
+import Requests.LogoutRequest;
+import Requests.RegisterRequest;
+import Results.LoginResult;
+import Results.LogoutResult;
+import Results.RegisterResult;
 import dataaccess.*;
-import io.javalin.http.BadRequestResponse;
 import model.*;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 public class UserService {
@@ -18,7 +21,6 @@ public class UserService {
 
     public RegisterResult register(RegisterRequest registerRequest) throws BadRequestException, AlreadyTakenException,
             DataAccessException {
-        // TODO this should throw an exception?  Or the data access method itself?
         if ((registerRequest.username() == null)
                 || (registerRequest.password() == null)
                 || (registerRequest.email() == null)){
