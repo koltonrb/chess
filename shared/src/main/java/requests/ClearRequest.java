@@ -1,4 +1,4 @@
-package Requests;
+package requests;
 
 public record ClearRequest(String db){
 }

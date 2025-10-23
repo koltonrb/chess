@@ -1,8 +1,8 @@
 package service;
 
 import dataaccess.DataAccess;
-import Requests.ClearRequest;
-import Results.ClearResult;
+import requests.ClearRequest;
+import results.ClearResult;
 
 public class ClearService {
     private final DataAccess dataAccess;

@@ -1,7 +1,7 @@
 package service;
 
-import Requests.*;
-import Results.*;
+import requests.*;
+import results.*;
 import chess.ChessGame;
 import dataaccess.*;
 import model.*;

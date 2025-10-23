@@ -1,11 +1,11 @@
 package service;
 
-import Requests.CreateGameRequest;
-import Requests.JoinGameRequest;
-import Requests.ListGamesRequest;
-import Results.CreateGameResult;
-import Results.JoinGameResult;
-import Results.ListGamesResult;
+import requests.CreateGameRequest;
+import requests.JoinGameRequest;
+import requests.ListGamesRequest;
+import results.CreateGameResult;
+import results.JoinGameResult;
+import results.ListGamesResult;
 import dataaccess.*;
 import model.*;
 
