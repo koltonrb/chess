@@ -63,5 +63,6 @@ public class MemoryDataAccess implements DataAccess {
     public void clear(ClearRequest request){
         users.clear();
         authorizations.clear();
+        games.clear();
     }
 }
