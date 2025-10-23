@@ -1,5 +1,6 @@
 package service;
 
+import chess.ChessGame;
 import dataaccess.*;
 import model.*;
 import org.eclipse.jetty.server.Authentication;
@@ -8,6 +9,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -15,6 +17,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class UserServiceTest {
     private DataAccess dataAccess;
     private UserService userService;
+    private GameService gameService;
     private ClearService clearService;
     private RegisterResult initialRegisterResult;
 
@@ -22,6 +25,7 @@ class UserServiceTest {
     void setUpService() throws DataAccessException {
         this.dataAccess = new MemoryDataAccess();
         this.userService = new UserService(dataAccess);
+        this.gameService = new GameService(dataAccess);
         this.clearService = new ClearService(dataAccess);
 
         RegisterRequest request = new RegisterRequest("Kolton",
@@ -65,6 +69,7 @@ class UserServiceTest {
     void positiveClear() throws DataAccessException {
         HashMap<String, UserData> emptyUsers = new HashMap<>();
         HashMap<String, AuthData> emptyAuth = new HashMap<>();
+        ArrayList<GameData> emptyGames = new ArrayList<>();
 
         ClearRequest clearRequest = new ClearRequest("");
 
@@ -75,6 +80,7 @@ class UserServiceTest {
         ClearResult clearResult = this.clearService.clear( clearRequest );
 
         Assertions.assertEquals(emptyUsers, this.dataAccess.getUsers(), "Users not emptied" );
+        Assertions.assertEquals(emptyGames, this.dataAccess.listGames(), "games list not emptied");
         Assertions.assertEquals(emptyAuth, this.dataAccess.getAuthorizations(),
                 "AuthData not emptied");
 
@@ -118,5 +124,51 @@ class UserServiceTest {
         LogoutRequest logoutRequest = new LogoutRequest();
         UnauthorizedException myException = Assertions.assertThrows(UnauthorizedException.class,
                 () -> this.userService.logout(logoutRequest, "NOTMYAUTHTOKEN"));
+    }
+
+    @Test
+    @DisplayName("positive createGame")
+    void positiveCreateGame() throws DataAccessException {
+        CreateGameRequest createGameRequest = new CreateGameRequest("Checkers");
+        CreateGameResult createGameResult = this.gameService.createGame(createGameRequest, this.initialRegisterResult.authToken());
+        Assertions.assertNotNull(createGameResult, "should return CreateGameResult, not null");
+        Assertions.assertEquals(createGameResult, new CreateGameResult(1), "unexpected gameId value");
+    }
+
+    @Test
+    @DisplayName("negative createGame")
+    void negativeCreateGame() throws DataAccessException{
+        CreateGameRequest createGameRequest = new CreateGameRequest("Checkers");
+        UnauthorizedException myException = Assertions.assertThrows(UnauthorizedException.class,
+                () -> this.gameService.createGame(createGameRequest, "notAnAuthorization"));
+
+    }
+
+    @Test
+    @DisplayName("positive listGames")
+    void positiveListGames() throws DataAccessException{
+        ArrayList<GameData>  expected_game = new ArrayList<>();
+        expected_game.add(new GameData(1,
+                null,
+                null,
+                "BattleFrontII",
+                new ChessGame()));
+        ListGamesResult expected_result = new ListGamesResult(expected_game);
+
+        CreateGameRequest createGameRequest = new CreateGameRequest("BattleFrontII");
+        CreateGameResult createGameResult = this.gameService.createGame(createGameRequest,
+                this.initialRegisterResult.authToken());
+        ListGamesRequest listGamesRequest = new ListGamesRequest();
+        ListGamesResult listGamesResult = this.gameService.listGames(listGamesRequest,
+                this.initialRegisterResult.authToken());
+        Assertions.assertEquals(expected_result, listGamesResult, "un expected ListGamesResult");
+    }
+
+    @Test
+    @DisplayName("negative listGames")
+    void negativeListGames() throws DataAccessException{
+        ListGamesRequest listGamesRequest = new ListGamesRequest();
+        UnauthorizedException myException = Assertions.assertThrows(UnauthorizedException.class,
+                () -> this.gameService.listGames(listGamesRequest, "notAnAuthorization"));
     }
 }

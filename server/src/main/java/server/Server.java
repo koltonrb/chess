@@ -34,6 +34,7 @@ public class Server {
                 .delete("/session", this::logoutUser)
                 .post("/game", this::createGame)
                 .get("/game", this::listGames)
+//                .put("/game", this::joinGame)
                 .exception(AlreadyTakenException.class, this::alreadyTakenExceptionHandler)
                 .exception(BadRequestException.class, this::badRequestExceptionHandler)
                 .exception(UnauthorizedException.class, this::unauthorizedExceptionHandler);
@@ -117,6 +118,11 @@ public class Server {
         ListGamesRequest request = new Gson().fromJson(ctx.body(), ListGamesRequest.class);
         ListGamesResult result = gameService.listGames( request, authToken );
         ctx.status(200).json(new Gson().toJson( result ));
+    }
+
+    private void joinGames(Context ctx){
+        String authToken = ctx.header("authorization");
+
     }
 
     private void clearDatabase(Context ctx) {
