@@ -9,6 +9,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import javax.xml.crypto.Data;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -170,5 +171,41 @@ class UserServiceTest {
         ListGamesRequest listGamesRequest = new ListGamesRequest();
         UnauthorizedException myException = Assertions.assertThrows(UnauthorizedException.class,
                 () -> this.gameService.listGames(listGamesRequest, "notAnAuthorization"));
+    }
+
+    @Test
+    @DisplayName("positive joinGame")
+    void positiveJoinGame() throws DataAccessException{
+
+        CreateGameRequest createGameRequest = new CreateGameRequest("BattleFrontII");
+        CreateGameResult createGameResult = this.gameService.createGame(createGameRequest,
+                this.initialRegisterResult.authToken());
+
+        JoinGameRequest joinGameRequest = new JoinGameRequest("BLACK", 1);
+        JoinGameResult joinGameResult = this.gameService.joinGame(joinGameRequest, this.initialRegisterResult.authToken());
+        GameData expectedGame = new GameData(1,
+                null,
+                this.initialRegisterResult.username(),
+                "BattleFrontII",
+                new ChessGame());
+
+        GameData actualGame = this.dataAccess.getGames().get(1);
+
+        Assertions.assertEquals(expectedGame, actualGame, "player not correctly added to game");
+    }
+
+    @Test
+    @DisplayName("negative joinGame")
+    void negativeJoinGame() throws DataAccessException{
+        CreateGameRequest createGameRequest = new CreateGameRequest("BattleFrontII");
+        CreateGameResult createGameResult = this.gameService.createGame(createGameRequest,
+                this.initialRegisterResult.authToken());
+
+        JoinGameRequest joinGameRequest = new JoinGameRequest("BLACK", 1);
+        JoinGameResult joinGameResult = this.gameService.joinGame(joinGameRequest, this.initialRegisterResult.authToken());
+
+        AlreadyTakenException myException = Assertions.assertThrows(AlreadyTakenException.class,
+                () -> this.gameService.joinGame(joinGameRequest, this.initialRegisterResult.authToken()));
+
     }
 }

@@ -38,7 +38,7 @@ public class GameService {
 
         if ((!acceptableColors.contains(request.playerColor()))
                 || (!dataAccess.getGames().containsKey(request.gameID()))){
-            // checks if team is WHTIE or BLACK AND that the gameId exists
+            // checks if team is WHITE or BLACK AND that the gameID exists
             throw new BadRequestException("Bad Request");
         }
 
