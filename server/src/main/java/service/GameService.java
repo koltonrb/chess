@@ -37,21 +37,23 @@ public class GameService {
         acceptableColors.add("BLACK");
 
         if ((!acceptableColors.contains(request.playerColor()))
-                || (!dataAccess.getGames().containsKey(request.gameId()))){
+                || (!dataAccess.getGames().containsKey(request.gameID()))){
             // checks if team is WHTIE or BLACK AND that the gameId exists
             throw new BadRequestException("Bad Request");
         }
+
         AuthData authData = dataAccess.getAuth(authToken);
         if (authData == null){
             throw new UnauthorizedException("unauthorized");
         }
-        GameData game = dataAccess.getGames().get(request.gameId());
-        if (((request.playerColor() == "WHITE") && (game.whiteUsername() != null))
-            || ((request.playerColor() == "BLACK") && (game.blackUsername() != null))){
+
+        GameData game = dataAccess.getGames().get(request.gameID());
+        if (((request.playerColor().equals("WHITE")) && (game.whiteUsername() != null))
+            || ((request.playerColor().equals("BLACK")) && (game.blackUsername() != null))){
             throw new AlreadyTakenException("there is already someone playing that color");
         }
         GameData updatedGame;
-        if (request.playerColor() == "WHITE"){
+        if (request.playerColor().equals("WHITE")){
             updatedGame = new GameData(game.gameID(),
                 authData.username(),
                     game.blackUsername(),
