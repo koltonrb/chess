@@ -23,6 +23,9 @@ public class MemoryDataAccess implements DataAccess {
     public HashMap<String, AuthData> getAuthorizations() {
         return authorizations;
     }
+    public HashMap<Integer, GameData> getGames() {
+        return games;
+    }
 
     public UserData getUser(String username) {
         return users.getOrDefault(username, null);
@@ -60,9 +63,15 @@ public class MemoryDataAccess implements DataAccess {
         return new ArrayList<GameData>(this.games.values());
     }
 
+    public void updateGame(GameData updatedGame ){
+        this.games.remove(updatedGame.gameID());
+        this.games.put(updatedGame.gameID(), updatedGame);
+    }
+
     public void clear(ClearRequest request){
         users.clear();
         authorizations.clear();
         games.clear();
     }
+
 }

@@ -1,9 +1,6 @@
 package service;
 
-import dataaccess.BadRequestException;
-import dataaccess.DataAccess;
-import dataaccess.DataAccessException;
-import dataaccess.UnauthorizedException;
+import dataaccess.*;
 import model.*;
 
 import java.util.ArrayList;
@@ -32,5 +29,45 @@ public class GameService {
         }
         GameData gameData = dataAccess.createGame(request.gameName());
         return new CreateGameResult(gameData.gameID());
+    }
+
+    public JoinGameResult joinGame(JoinGameRequest request, String authToken) throws DataAccessException {
+        ArrayList<String> acceptableColors = new ArrayList<>();
+        acceptableColors.add("WHITE");
+        acceptableColors.add("BLACK");
+
+        if ((!acceptableColors.contains(request.playerColor()))
+                || (!dataAccess.getGames().containsKey(request.gameId()))){
+            // checks if team is WHTIE or BLACK AND that the gameId exists
+            throw new BadRequestException("Bad Request");
+        }
+        AuthData authData = dataAccess.getAuth(authToken);
+        if (authData == null){
+            throw new UnauthorizedException("unauthorized");
+        }
+        GameData game = dataAccess.getGames().get(request.gameId());
+        if (((request.playerColor() == "WHITE") && (game.whiteUsername() != null))
+            || ((request.playerColor() == "BLACK") && (game.blackUsername() != null))){
+            throw new AlreadyTakenException("there is already someone playing that color");
+        }
+        GameData updatedGame;
+        if (request.playerColor() == "WHITE"){
+            updatedGame = new GameData(game.gameID(),
+                authData.username(),
+                    game.blackUsername(),
+                    game.gameName(),
+                    game.game());
+
+        } else {
+            updatedGame = new GameData(game.gameID(),
+                    game.whiteUsername(),
+                    authData.username(),
+                    game.gameName(),
+                    game.game());
+        }
+        dataAccess.updateGame( updatedGame );
+        return new JoinGameResult();
+
+
     }
 }

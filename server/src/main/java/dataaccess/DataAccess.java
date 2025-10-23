@@ -11,6 +11,7 @@ import java.util.HashMap;
 public interface DataAccess {
     HashMap<String, UserData> getUsers();
     public HashMap<String, AuthData> getAuthorizations();
+    public HashMap<Integer, GameData> getGames();
     public AuthData getAuth(String authToken) throws DataAccessException;
     void deleteAuth(AuthData authData) throws DataAccessException;
     UserData getUser(String username) throws DataAccessException;
@@ -18,5 +19,6 @@ public interface DataAccess {
     void createAuth(AuthData authData) throws DataAccessException;
     GameData createGame(String gameName) throws DataAccessException;
     ArrayList<GameData> listGames() throws DataAccessException;
+    void updateGame(GameData game);
     void clear(ClearRequest request);
 }
