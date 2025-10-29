@@ -25,7 +25,8 @@ public class Server {
     private final ClearService clearService;
 
     public Server(){
-        this.dataAccess = new MemoryDataAccess();
+//        this.dataAccess = new MemoryDataAccess();
+        this.dataAccess = new MySqlDataAccess();
         this.userService = new UserService(this.dataAccess);
         this.gameService = new GameService(this.dataAccess);
         this.clearService = new ClearService(this.dataAccess);
