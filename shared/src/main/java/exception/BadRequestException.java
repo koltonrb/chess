@@ -1,4 +1,4 @@
-package dataaccess;
+package exception;
 
 import io.javalin.http.BadRequestResponse;
 

@@ -1,5 +1,8 @@
 package service;
 
+import exception.AlreadyTakenException;
+import exception.DataAccessException;
+import exception.UnauthorizedException;
 import requests.*;
 import results.*;
 import chess.ChessGame;

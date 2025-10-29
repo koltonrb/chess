@@ -1,5 +1,9 @@
 package service;
 
+import exception.AlreadyTakenException;
+import exception.BadRequestException;
+import exception.DataAccessException;
+import exception.UnauthorizedException;
 import requests.CreateGameRequest;
 import requests.JoinGameRequest;
 import requests.ListGamesRequest;

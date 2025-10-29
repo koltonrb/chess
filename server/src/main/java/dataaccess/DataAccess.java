@@ -1,5 +1,6 @@
 package dataaccess;
 
+import exception.DataAccessException;
 import model.AuthData;
 import requests.ClearRequest;
 import model.GameData;

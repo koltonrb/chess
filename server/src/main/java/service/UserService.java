@@ -1,5 +1,9 @@
 package service;
 
+import exception.AlreadyTakenException;
+import exception.BadRequestException;
+import exception.DataAccessException;
+import exception.UnauthorizedException;
 import requests.LoginRequest;
 import requests.LogoutRequest;
 import requests.RegisterRequest;
