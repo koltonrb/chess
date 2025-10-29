@@ -33,7 +33,7 @@ public class MySqlDataAccess implements DataAccess {
             """
             CREATE TABLE IF NOT EXISTS authorizations (
                 `authToken` varchar(256) NOT NULL,
-                `username` varchar(256)
+                `username` varchar(256) NOT NULL,
             PRIMARY KEY (authToken),
             INDEX (username)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
@@ -45,7 +45,7 @@ public class MySqlDataAccess implements DataAccess {
                 `whiteUsername` varchar(256),
                 `blackUsername` varchar(256),
                 `gameName` varchar(256) NOT NULL,
-                `game` varchar(10000),
+                `game` varchar(10000) NOT NULL,
             PRIMARY KEY ('game_id'),
             INDEX(gameName)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
