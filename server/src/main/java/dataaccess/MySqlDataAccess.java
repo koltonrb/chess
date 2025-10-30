@@ -67,7 +67,7 @@ public class MySqlDataAccess implements DataAccess {
         }
     }
 
-    private int executeUpdate(String statement) throws SQLException {
+    private int executeUpdate(String statement, Object... params) throws SQLException {
         try (Connection conn = DatabaseManager.getConnection()) {
             try (PreparedStatement ps = conn.prepareStatement(statement, Statement.RETURN_GENERATED_KEYS)){
                 for (int i=0; i < params.length; i++) {
@@ -85,7 +85,7 @@ public class MySqlDataAccess implements DataAccess {
 
                 return 0;
             }
-        } catch (SQLException e) {
+        } catch (SQLException | DataAccessException e) {
             throw new SQLException(String.format("unable to update database: %s, %s", statement, e.getMessage()));
         }
     }
@@ -117,12 +117,34 @@ public class MySqlDataAccess implements DataAccess {
 
     @Override
     public UserData getUser(String username) throws DataAccessException {
-        return null;
+        try (Connection conn = DatabaseManager.getConnection()) {
+            var statement = "SELECT user_id, username, password, email FROM users WHERE username=?";
+            try (PreparedStatement ps = conn.prepareStatement(statement)){
+                ps.setString(1, username);
+                try (ResultSet rs = ps.executeQuery()){
+                    if (rs.next()) {
+                        return new UserData(rs.getString("username"),
+                                rs.getString("password"),
+                                rs.getString("email"));
+                    } else {
+                        throw new DataAccessException("User: " + username + " does not exist");
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException("Database error finding user" + username, e);
+        }
     }
 
     @Override
     public void createUser(UserData userData) throws DataAccessException {
-
+        var statement = "INSERT INTO users (username, password, email) VALUES (?, ?, ?)";
+        // TODO: Serialize (?) the passwords before saving
+        try {
+            int id = executeUpdate(statement, userData.username(), userData.password(), userData.email());
+        } catch (SQLException e) {
+            throw new DataAccessException("Database error saving user" + userData.toString(), e);
+        }
     }
 
     @Override
