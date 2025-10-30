@@ -16,7 +16,7 @@ import static java.sql.Types.NULL;
 
 public class MySqlDataAccess implements DataAccess {
 
-    public void MySqlDataAccess() throws ResponseException {
+    public void MySqlDataAccess() throws ResponseException, DataAccessException {
         configureDatabase();
     }
 
@@ -127,7 +127,7 @@ public class MySqlDataAccess implements DataAccess {
                                 rs.getString("password"),
                                 rs.getString("email"));
                     } else {
-                        throw new DataAccessException("User: " + username + " does not exist");
+                        return null;
                     }
                 }
             }
@@ -168,14 +168,18 @@ public class MySqlDataAccess implements DataAccess {
     }
 
     @Override
-    public void clear(ClearRequest request) {
+    public void clear(ClearRequest request) throws DataAccessException {
         var statement = """
                 BEGIN TRANSACTION;
                     TRUNCATE users;
                     TRUNCATE authorizations;
                     TRUNCATE games;
                 """;
-        executeUpdate(statement);
+        try {
+            executeUpdate(statement);
+        } catch (SQLException e) {
+            throw new DataAccessException("Error clearing data tables", e);
+        }
     }
 
 }

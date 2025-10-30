@@ -121,7 +121,7 @@ public class Server {
         ctx.status(200).json(new Gson().toJson( result));
     }
 
-    private void clearDatabase(Context ctx) {
+    private void clearDatabase(Context ctx) throws DataAccessException {
         ClearRequest request = new Gson().fromJson(ctx.body(), ClearRequest.class);
         ClearResult result = clearService.clear(request);
         ctx.status(200).json(new Gson().toJson( result ));

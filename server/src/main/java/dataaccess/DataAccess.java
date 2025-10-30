@@ -21,5 +21,5 @@ public interface DataAccess {
     GameData createGame(String gameName) throws DataAccessException;
     ArrayList<GameData> listGames() throws DataAccessException;
     void updateGame(GameData game);
-    void clear(ClearRequest request);
+    void clear(ClearRequest request) throws DataAccessException;
 }

@@ -1,5 +1,6 @@
 import dataaccess.DataAccess;
 import dataaccess.MemoryDataAccess;
+import dataaccess.MySqlDataAccess;
 import server.Server;
 import service.UserService;
 
@@ -11,7 +12,8 @@ public class Main {
                 port = Integer.parseInt(args[0]);
             }
 
-            DataAccess dataAccess = new MemoryDataAccess();
+//            DataAccess dataAccess = new MemoryDataAccess();
+            DataAccess dataAccess = new MySqlDataAccess();
             var server = new Server();
             server.run(port);
             System.out.println("♕ 240 Chess Server");
