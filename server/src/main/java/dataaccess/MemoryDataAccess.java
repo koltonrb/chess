@@ -1,6 +1,7 @@
 package dataaccess;
 
 import chess.ChessGame;
+import exception.DataAccessException;
 import model.AuthData;
 import requests.ClearRequest;
 import model.GameData;
@@ -16,7 +17,7 @@ public class MemoryDataAccess implements DataAccess {
     final private HashMap<Integer, GameData> games = new HashMap<>();
     private Integer nextGameId = 1;
 
-    public HashMap<String, UserData> getUsers() {
+    public HashMap<String, UserData> getUsers() throws DataAccessException {
         return users;
     }
     public HashMap<String, AuthData> getAuthorizations() {

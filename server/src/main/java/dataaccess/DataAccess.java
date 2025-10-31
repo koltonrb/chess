@@ -10,9 +10,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public interface DataAccess {
-    HashMap<String, UserData> getUsers();
-    public HashMap<String, AuthData> getAuthorizations();
-    public HashMap<Integer, GameData> getGames();
+    HashMap<String, UserData> getUsers() throws DataAccessException;
+    public HashMap<String, AuthData> getAuthorizations() throws DataAccessException;
+    public HashMap<Integer, GameData> getGames() throws DataAccessException;
     public AuthData getAuth(String authToken) throws DataAccessException;
     void deleteAuth(AuthData authData) throws DataAccessException;
     UserData getUser(String username) throws DataAccessException;
