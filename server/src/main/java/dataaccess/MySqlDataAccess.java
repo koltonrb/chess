@@ -143,7 +143,7 @@ public class MySqlDataAccess implements DataAccess {
             try (PreparedStatement ps = conn.prepareStatement(statement)){
                 try (ResultSet rs = ps.executeQuery()){
                     while (rs.next()) {
-                        GameData game = new GameData(rs.getInt("gameID"),
+                        GameData game = new GameData(rs.getInt("game_id"),
                                 rs.getString("whiteUsername"),
                                 rs.getString("blackUsername"),
                                 rs.getString("gameName"),
@@ -222,7 +222,7 @@ public class MySqlDataAccess implements DataAccess {
 
     @Override
     public void createAuth(AuthData authData) throws DataAccessException {
-        var statement = "INSERT INTO authorizations (authToken, username) VALUES (?, ?, ?)";
+        var statement = "INSERT INTO authorizations (authToken, username) VALUES (?, ?)";
         try {
             int id = executeUpdate(statement, authData.authToken(), authData.username());
         } catch (SQLException e) {
@@ -245,24 +245,53 @@ public class MySqlDataAccess implements DataAccess {
 
     @Override
     public ArrayList<GameData> listGames() throws DataAccessException {
-       return null;
+        ArrayList<GameData> games = new ArrayList<GameData>();
+        try (Connection conn = DatabaseManager.getConnection()) {
+            var statement = "SELECT * FROM games ORDER BY game_id";
+            try (PreparedStatement ps = conn.prepareStatement(statement)){
+                try (ResultSet rs = ps.executeQuery()){
+                    while (rs.next()) {
+                        GameData game = new GameData(rs.getInt("game_id"),
+                                rs.getString("whiteUsername"),
+                                rs.getString("blackUsername"),
+                                rs.getString("gameName"),
+                                new Gson().fromJson(rs.getString("game"), ChessGame.class)
+                        );
+                        games.add(game);
+                    }
+                }
+            }
+            return games;
+        } catch (SQLException | DataAccessException e) {
+            throw new DataAccessException("unable to fetch games table from database", e);
+        }
     }
 
     @Override
-    public void updateGame(GameData game) {
-
+    public void updateGame(GameData game) throws DataAccessException {
+        var statement = "UPDATE games SET whiteUsername=?, blackUsername=?, gameName=?, game=? WHERE game_id=?";
+        try {
+            int gameID = executeUpdate(statement, game.whiteUsername(),
+                    game.blackUsername(),
+                    game.gameName(),
+                    new Gson().toJson( game.game() ),
+                    game.gameID());
+        } catch (SQLException e){
+            throw new DataAccessException("Database error updating a game", e);
+        }
     }
 
     @Override
     public void clear(ClearRequest request) throws DataAccessException {
-        var statement = """
-                BEGIN TRANSACTION;
-                    TRUNCATE users;
-                    TRUNCATE authorizations;
-                    TRUNCATE games;
-                """;
+        final String statements[]  = {"TRUNCATE users;",
+                "TRUNCATE authorizations;",
+                "TRUNCATE games;"
+        };
+
         try {
-            executeUpdate(statement);
+            for (String statement : statements){
+                executeUpdate(statement);
+            }
         } catch (SQLException e) {
             throw new DataAccessException("Error clearing data tables", e);
         }

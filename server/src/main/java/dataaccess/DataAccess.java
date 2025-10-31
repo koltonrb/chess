@@ -20,6 +20,6 @@ public interface DataAccess {
     void createAuth(AuthData authData) throws DataAccessException;
     GameData createGame(String gameName) throws DataAccessException;
     ArrayList<GameData> listGames() throws DataAccessException;
-    void updateGame(GameData game);
+    void updateGame(GameData game) throws DataAccessException;
     void clear(ClearRequest request) throws DataAccessException;
 }

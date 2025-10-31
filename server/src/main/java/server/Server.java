@@ -30,7 +30,7 @@ public class Server {
         try {
             dataAccess1 = new MySqlDataAccess();
         } catch (DataAccessException e) {
-            dataAccess1 = new MemoryDataAccess(); 
+            dataAccess1 = new MemoryDataAccess();
             System.out.println("Defaulting to local memory");
         }
         this.dataAccess = dataAccess1;
