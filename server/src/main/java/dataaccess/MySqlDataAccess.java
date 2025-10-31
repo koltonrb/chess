@@ -16,7 +16,7 @@ import static java.sql.Types.NULL;
 
 public class MySqlDataAccess implements DataAccess {
 
-    public void MySqlDataAccess() throws ResponseException, DataAccessException {
+    public MySqlDataAccess() throws DataAccessException {
         configureDatabase();
     }
 
@@ -26,8 +26,8 @@ public class MySqlDataAccess implements DataAccess {
                 `user_id` int NOT NULL AUTO_INCREMENT,
                 `username` varchar(256) NOT NULL,
                 `password` varchar(256) NOT NULL,
-                'email' varchar(256) NOT NULL,
-                PRIMARY KEY ('user_id')
+                `email` varchar(256) NOT NULL,
+                PRIMARY KEY (`user_id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
             """,
 
@@ -35,8 +35,8 @@ public class MySqlDataAccess implements DataAccess {
             CREATE TABLE IF NOT EXISTS authorizations (
                 `authToken` varchar(256) NOT NULL,
                 `username` varchar(256) NOT NULL,
-            PRIMARY KEY (authToken),
-            INDEX (username)
+            PRIMARY KEY (`authToken`),
+            INDEX (`username`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
             """,
 
@@ -47,8 +47,8 @@ public class MySqlDataAccess implements DataAccess {
                 `blackUsername` varchar(256),
                 `gameName` varchar(256) NOT NULL,
                 `game` varchar(10000) NOT NULL,
-            PRIMARY KEY ('game_id'),
-            INDEX(gameName)
+            PRIMARY KEY (`game_id`),
+            INDEX(`gameName`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
             """
     };

@@ -31,6 +31,7 @@ public class DatabaseManager {
         }
     }
 
+
     /**
      * Create a connection to the database and sets the catalog based upon the
      * properties specified in db.properties. Connections to the database should
@@ -50,7 +51,7 @@ public class DatabaseManager {
             conn.setCatalog(databaseName);
             return conn;
         } catch (SQLException ex) {
-            throw new DataAccessException("failed to get connection", ex);
+            throw new DataAccessException("failed to get connection " + connectionUrl + " " + dbUsername +" " + dbPassword, ex);
         }
     }
 

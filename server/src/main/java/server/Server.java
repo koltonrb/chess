@@ -25,8 +25,15 @@ public class Server {
     private final ClearService clearService;
 
     public Server(){
+        DataAccess dataAccess1;
 //        this.dataAccess = new MemoryDataAccess();
-        this.dataAccess = new MySqlDataAccess();
+        try {
+            dataAccess1 = new MySqlDataAccess();
+        } catch (DataAccessException e) {
+            dataAccess1 = new MemoryDataAccess(); 
+            System.out.println("Defaulting to local memory");
+        }
+        this.dataAccess = dataAccess1;
         this.userService = new UserService(this.dataAccess);
         this.gameService = new GameService(this.dataAccess);
         this.clearService = new ClearService(this.dataAccess);
