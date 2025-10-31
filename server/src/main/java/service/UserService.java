@@ -4,6 +4,7 @@ import exception.AlreadyTakenException;
 import exception.BadRequestException;
 import exception.DataAccessException;
 import exception.UnauthorizedException;
+import org.mindrot.jbcrypt.BCrypt;
 import requests.LoginRequest;
 import requests.LogoutRequest;
 import requests.RegisterRequest;
@@ -55,7 +56,8 @@ public class UserService {
         }
         UserData user = dataAccess.getUser(loginRequest.username() );
 
-        if ((user == null) || (!loginRequest.password().equals(user.password())) ){
+//        if ((user == null) || (!loginRequest.password().equals(user.password())) ){
+        if ((user == null) || (!BCrypt.checkpw(loginRequest.password(), user.password()))){
             throw new UnauthorizedException("unauthorized");
         }
 

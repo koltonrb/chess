@@ -3,6 +3,7 @@ package dataaccess;
 import chess.ChessGame;
 import exception.DataAccessException;
 import model.AuthData;
+import org.mindrot.jbcrypt.BCrypt;
 import requests.ClearRequest;
 import model.GameData;
 import model.UserData;
@@ -32,7 +33,10 @@ public class MemoryDataAccess implements DataAccess {
     }
 
     public void createUser(UserData user){
-        users.put(user.username(), user);
+        String hashedPassword = BCrypt.hashpw(user.password(), BCrypt.gensalt());
+        users.put(user.username(), new UserData(user.username(),
+                hashedPassword,
+                user.email()));
     }
 
     public void createAuth(AuthData authData ){
