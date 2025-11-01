@@ -180,9 +180,9 @@ public class MySqlDataAccess implements DataAccess {
 
     @Override
     public void deleteAuth(AuthData authData) throws DataAccessException {
-        var statement = "DELETE FROM authorizations WHERE username=?";
+        var statement = "DELETE FROM authorizations WHERE authToken=?";
         try {
-            int id = executeUpdate(statement, authData.username());
+            int id = executeUpdate(statement, authData.authToken());
         } catch (SQLException e){
             throw new DataAccessException("Database error deleting authorization", e);
         }

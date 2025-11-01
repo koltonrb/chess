@@ -3,6 +3,7 @@ package service;
 import exception.AlreadyTakenException;
 import exception.DataAccessException;
 import exception.UnauthorizedException;
+import org.mindrot.jbcrypt.BCrypt;
 import requests.*;
 import results.*;
 import chess.ChessGame;
@@ -50,7 +51,8 @@ class UserServiceTest {
         // now did it also add the user to memory?
         UserData user = this.dataAccess.getUser("Kolton");
         Assertions.assertEquals("Kolton", user.username(), "username stored correctly");
-        Assertions.assertEquals("secretPassword!", user.password(), "password stored correctly");
+//        Assertions.assertEquals("secretPassword!", user.password(), "password stored correctly");
+        Assertions.assertTrue(BCrypt.checkpw("secretPassword!", user.password()));
         Assertions.assertEquals("koltonrb@byu.edu", user.email(), "email stored correctly") ;
     }
 

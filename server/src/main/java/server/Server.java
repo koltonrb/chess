@@ -49,7 +49,8 @@ public class Server {
                 .put("/game", this::joinGame)
                 .exception(AlreadyTakenException.class, this::alreadyTakenExceptionHandler)
                 .exception(BadRequestException.class, this::badRequestExceptionHandler)
-                .exception(UnauthorizedException.class, this::unauthorizedExceptionHandler);
+                .exception(UnauthorizedException.class, this::unauthorizedExceptionHandler)
+                .exception(DataAccessException.class, this::dataAccessExceptionHandler);
     }
 
     public int run(int desiredPort) {
@@ -81,6 +82,11 @@ public class Server {
 
     private void unauthorizedExceptionHandler(UnauthorizedException ex, Context ctx){
         ctx.status(401);
+        ctx.result(exceptionToJSON(ex));
+    }
+
+    private void dataAccessExceptionHandler(DataAccessException ex, Context ctx){
+        ctx.status(500);
         ctx.result(exceptionToJSON(ex));
     }
 
