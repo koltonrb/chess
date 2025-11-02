@@ -270,6 +270,14 @@ public class MySqlDataAccess implements DataAccess {
 
     @Override
     public void updateGame(GameData game) throws DataAccessException {
+        if (game.gameID() <= 0) {
+            throw new DataAccessException("gameID must be positive int");
+        }
+        if (game.game() == null){
+            // necessary because the Gson() object below converts null to "null" which plugs into the games table just fine
+            // even though the ChessGame object really is null and an error should be thrown
+            throw new DataAccessException("ChessGame must not be null");
+        }
         var statement = "UPDATE games SET whiteUsername=?, blackUsername=?, gameName=?, game=? WHERE game_id=?";
         try {
             int gameID = executeUpdate(statement, game.whiteUsername(),

@@ -18,6 +18,7 @@ import javax.xml.crypto.Data;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.UUID;
 
 public class DataAccessTests {
@@ -41,15 +42,19 @@ public class DataAccessTests {
                 hashedPw,
                 "koltonrb@byu.edu");
         this.dataAccess.createUser(this.initialUser);
-//        RegisterRequest request2 = new RegisterRequest("Patrick",
-//                "StarPassword",
-//                "underMyRock@bbmail.com");
 
     }
 
     @Test
     @DisplayName("positive getUsers")
-    void getUsersPositive(){
+    void getUsersPositive() throws DataAccessException {
+        HashMap<String, UserData> expectedUsers = new HashMap<String, UserData>();
+        expectedUsers.put("Kolton", this.initialUser);
+
+        HashMap<String, UserData> returnedUsers = this.dataAccess.getUsers();
+
+        Assertions.assertEquals(expectedUsers, returnedUsers,
+                "database users not listed as expected");
     }
 
     @Test
@@ -202,7 +207,7 @@ public class DataAccessTests {
     void updateGamePositive() throws DataAccessException {
         String gameName = "Kolton first game!";
         GameData game = this.dataAccess.createGame(gameName);
-        GameData expectedGame = new GameData(1, "Kolton", null, gameName, null);
+        GameData expectedGame = new GameData(1, "Kolton", null, gameName, new ChessGame());
         this.dataAccess.updateGame( expectedGame );
         GameData recordedGame = this.dataAccess.getGames().get(1);
         Assertions.assertEquals(expectedGame, recordedGame, "game update not recorded correctly!");
@@ -213,15 +218,36 @@ public class DataAccessTests {
     void updateGameNegative() throws DataAccessException {
         String gameName = "Kolton first game!";
         GameData game = this.dataAccess.createGame(gameName);
-        GameData badGame = new GameData(1, "SpongeBob", null, gameName, new ChessGame());
+        GameData badGame = new GameData(1, "SpongeBob", null, gameName, null);
         DataAccessException myException = Assertions.assertThrows(DataAccessException.class,
                 () -> this.dataAccess.updateGame(badGame),
-                "cannot update a game without a gameID!  A DataAccessError should be thrown");
+                "ChessGame cannot be null! A DataAccessError should be thrown");
     }
 
     @Test
     @DisplayName("positive clear")
-    void clearPositive(){
+    void clearPositive() throws DataAccessException {
+        ClearRequest request = new ClearRequest("db");
+
+        HashMap<String, AuthData> expectedAuths = new HashMap<String, AuthData>();
+        HashMap<Integer, GameData> expectedGames = new HashMap<Integer, GameData>();
+        HashMap<String, UserData> expectedUsers = new HashMap<String, UserData>();
+        // populate the game table too!
+        String gameName = "Kolton first game!";
+        GameData game = this.dataAccess.createGame(gameName);
+        GameData expectedGame = new GameData(1, "Kolton", null, gameName, new ChessGame());
+        this.dataAccess.updateGame( expectedGame );
+
+        this.dataAccess.clear( request );
+
+        HashMap<String, AuthData> recordedAuths = this.dataAccess.getAuthorizations();
+        HashMap<Integer, GameData> recordedGames = this.dataAccess.getGames();
+        HashMap<String, UserData> recordedUsers = this.dataAccess.getUsers();
+
+        Assertions.assertEquals(expectedAuths, recordedAuths, "authorizations table not truncated");
+        Assertions.assertEquals(expectedGames, recordedGames, "games table not truncated");
+        Assertions.assertEquals(expectedUsers, recordedUsers, "users table not truncated");
+
     }
 
 }
