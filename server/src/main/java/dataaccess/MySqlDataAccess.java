@@ -76,7 +76,7 @@ public class MySqlDataAccess implements DataAccess {
                     Object param = params[i];
                     if (param instanceof String p) ps.setString(i + 1, p);
                     else if (param instanceof Integer p) ps.setInt(i+1, p);
-                    else if (param == null) ps.setNull(i+1, NULL);
+                    else if (param == null) ps.setNull(i+1, java.sql.Types.NULL);
                 }
                 ps.executeUpdate();
 
@@ -84,11 +84,12 @@ public class MySqlDataAccess implements DataAccess {
                 if (rs.next()) {
                     return rs.getInt(1);
                 }
-
+//                int numRowsAffected = ps.getUpdateCount();
+//                return numRowsAffected;
                 return 0;
             }
         } catch (SQLException | DataAccessException e) {
-            throw new SQLException(String.format("unable to update database: %s, %s", statement, e.getMessage()));
+            throw new SQLException(String.format("unable to update database: %s, %s", statement, e));
         }
     }
 
@@ -276,6 +277,9 @@ public class MySqlDataAccess implements DataAccess {
                     game.gameName(),
                     new Gson().toJson( game.game() ),
                     game.gameID());
+//            if (gameID==0){
+//                throw new DataAccessException("No games were updated! Maybe the gameID does not exist in the database?");
+//            }
         } catch (SQLException e){
             throw new DataAccessException("Database error updating a game", e);
         }

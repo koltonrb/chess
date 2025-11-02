@@ -1,7 +1,9 @@
 package dataaccess;
 
+import chess.ChessGame;
 import exception.DataAccessException;
 import model.AuthData;
+import model.GameData;
 import model.UserData;
 import org.junit.jupiter.api.*;
 import org.mindrot.jbcrypt.BCrypt;
@@ -14,6 +16,8 @@ import service.UserService;
 
 import javax.xml.crypto.Data;
 import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.UUID;
 
 public class DataAccessTests {
@@ -155,32 +159,64 @@ public class DataAccessTests {
 
     @Test
     @DisplayName("positive createGame")
-    void createGamePositive(){
+    void createGamePositive() throws DataAccessException {
+        String gameName = "Kolton first game!";
+        GameData game = this.dataAccess.createGame(gameName);
+        GameData expectedGame = new GameData(1, null, null, gameName, new ChessGame());
+        Assertions.assertEquals(expectedGame, game, "game not right at creation!");
     }
 
     @Test
     @DisplayName("negative createGame")
     void createGameNegative(){
+        String gameName = null;
+        DataAccessException myException = Assertions.assertThrows(DataAccessException.class,
+                ()->this.dataAccess.createGame(gameName),
+                "gameName cannot be null");
     }
 
     @Test
     @DisplayName("positive listGames")
-    void listGamesPositive(){
+    void listGamesPositive() throws DataAccessException {
+        String gameName = "Kolton first game!";
+        GameData game = this.dataAccess.createGame(gameName);
+        GameData expectedGame = new GameData(1, null, null, gameName, new ChessGame());
+        ArrayList<GameData> expectedResult = new ArrayList<>();
+        expectedResult.add(expectedGame);
+
+        ArrayList<GameData> result = this.dataAccess.listGames();
+        Assertions.assertEquals(expectedResult, result, "not returning the correct list of games from db");
     }
 
     @Test
     @DisplayName("negative listGames")
-    void listGamesNegative(){
+    void listGamesNegative() throws DataAccessException {
+       ArrayList<GameData> expectedResult = new ArrayList<>();
+       ArrayList<GameData> result = this.dataAccess.listGames();
+       Assertions.assertEquals(expectedResult, result, "should be empty list if no games initialized");
+
     }
 
     @Test
     @DisplayName("positive updateGame")
-    void updateGamePositive(){
+    void updateGamePositive() throws DataAccessException {
+        String gameName = "Kolton first game!";
+        GameData game = this.dataAccess.createGame(gameName);
+        GameData expectedGame = new GameData(1, "Kolton", null, gameName, null);
+        this.dataAccess.updateGame( expectedGame );
+        GameData recordedGame = this.dataAccess.getGames().get(1);
+        Assertions.assertEquals(expectedGame, recordedGame, "game update not recorded correctly!");
     }
 
     @Test
     @DisplayName("negative updateGame")
-    void updateGameNegative(){
+    void updateGameNegative() throws DataAccessException {
+        String gameName = "Kolton first game!";
+        GameData game = this.dataAccess.createGame(gameName);
+        GameData badGame = new GameData(1, "SpongeBob", null, gameName, new ChessGame());
+        DataAccessException myException = Assertions.assertThrows(DataAccessException.class,
+                () -> this.dataAccess.updateGame(badGame),
+                "cannot update a game without a gameID!  A DataAccessError should be thrown");
     }
 
     @Test
