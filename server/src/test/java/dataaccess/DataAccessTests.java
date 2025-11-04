@@ -5,6 +5,7 @@ import exception.DataAccessException;
 import model.AuthData;
 import model.GameData;
 import model.UserData;
+import org.eclipse.jetty.server.Authentication;
 import org.junit.jupiter.api.*;
 import org.mindrot.jbcrypt.BCrypt;
 import requests.ClearRequest;
@@ -16,9 +17,11 @@ import service.UserService;
 
 import javax.xml.crypto.Data;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 public class DataAccessTests {
@@ -52,34 +55,104 @@ public class DataAccessTests {
         expectedUsers.put("Kolton", this.initialUser);
 
         HashMap<String, UserData> returnedUsers = this.dataAccess.getUsers();
+        for (Map.Entry<String, UserData> entry: returnedUsers.entrySet()){
+            String username = entry.getKey();
+            UserData user = entry.getValue();
+            Assertions.assertEquals(this.initialUser.username(), username, "user not returned by username");
+            Assertions.assertEquals(user.username(), this.initialUser.username(), "mismatched UserData.userName returned");
+            Assertions.assertEquals(user.email(), this.initialUser.email(), "mismatched UserData.email returned");
+            Assertions.assertTrue(BCrypt.checkpw("secretPassword!", this.initialUser.password()));
+        }
 
-        Assertions.assertEquals(expectedUsers, returnedUsers,
-                "database users not listed as expected");
     }
 
     @Test
     @DisplayName("negative getUsers")
-    void getUsersNegative(){
+    void getUsersNegative() throws SQLException, DataAccessException{
+
+        // let's break the database
+        // and drop the table
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement ps = conn.prepareStatement("DROP TABLE IF EXISTS users")) {
+            ps.executeUpdate();
+        }
+
+        DataAccessException exception = Assertions.assertThrows(DataAccessException.class,
+                ()-> this.dataAccess.getUsers(),
+                "if the users table is inaccessible or missing a DataAccessException should throw");
     }
 
     @Test
     @DisplayName("positive getAuthorizations")
-    void getAuthorizationsPositive(){
+    void getAuthorizationsPositive() throws DataAccessException {
+        AuthData testAuth = new AuthData("thisWillBeRandomInRealUse", "Kolton");
+        this.dataAccess.createAuth(testAuth);
+
+        HashMap<String, AuthData> expectedAuths = new HashMap<>();
+        expectedAuths.put(testAuth.authToken(), testAuth);
+
+        HashMap<String, AuthData> returnedUsers = this.dataAccess.getAuthorizations();
+        for (Map.Entry<String, AuthData> entry: returnedUsers.entrySet()){
+            String authToken = entry.getKey();
+            AuthData authData = entry.getValue();
+            Assertions.assertEquals(testAuth.authToken(), authToken, "Authorizations not returned by authToken");
+            Assertions.assertEquals(testAuth.authToken(), authData.authToken(), "returned Authorization authToken doesn't match");
+            Assertions.assertEquals(testAuth.username(), authData.username(), "returned AuthData username doesn't match");
+        }
+
     }
 
     @Test
     @DisplayName("negative getAuthorizations")
-    void getAuthorizationsNegative(){
+    void getAuthorizationsNegative() throws SQLException, DataAccessException{
+        // let's break the database
+        // and drop the table
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement ps = conn.prepareStatement("DROP TABLE IF EXISTS authorizations")) {
+            ps.executeUpdate();
+        }
+
+        DataAccessException exception = Assertions.assertThrows(DataAccessException.class,
+                ()-> this.dataAccess.getAuthorizations(),
+                "if the authorizations table is inaccessible or missing a DataAccessException should throw");
+
     }
 
     @Test
     @DisplayName("positive getGames")
-    void getGamesPositive(){
+    void getGamesPositive() throws DataAccessException {
+        String gameName = "Kolton first game!";
+        GameData temp = this.dataAccess.createGame(gameName);
+        GameData expectedGame = new GameData(1, null, null, gameName, new ChessGame());
+
+        HashMap<Integer, GameData> expectedGames = new HashMap<>();
+        expectedGames.put(expectedGame.gameID(), expectedGame);
+
+        HashMap<Integer, GameData> returnedGames = this.dataAccess.getGames();
+
+        for (Map.Entry<Integer, GameData> entry : returnedGames.entrySet()){
+            Integer gameID = entry.getKey();
+            GameData game = entry.getValue();
+            Assertions.assertTrue(gameID > 0, "gameID must be positive");
+            Assertions.assertEquals(expectedGame, game, "recorded GameData object not equal to the expected game value");
+        }
     }
 
     @Test
     @DisplayName("negative getGames")
-    void getGamesNegative(){
+    void getGamesNegative() throws SQLException, DataAccessException{
+
+        // let's break the database
+        // and drop the table
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement ps = conn.prepareStatement("DROP TABLE IF EXISTS games")) {
+            ps.executeUpdate();
+        }
+
+        DataAccessException exception = Assertions.assertThrows(DataAccessException.class,
+                ()-> this.dataAccess.getGames(),
+                "if the games table is inaccessible or missing a DataAccessException should throw");
+
     }
 
     @Test
