@@ -54,7 +54,6 @@ public class MySqlDataAccess implements DataAccess {
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
             """
     };
-    //FIXME: is `game` varchar(10000) enough characters to serialize a full chessboard? it is way too much memory?
 
     private void configureDatabase() throws DataAccessException {
         DatabaseManager.createDatabase();
@@ -74,9 +73,9 @@ public class MySqlDataAccess implements DataAccess {
             try (PreparedStatement ps = conn.prepareStatement(statement, Statement.RETURN_GENERATED_KEYS)){
                 for (int i=0; i < params.length; i++) {
                     Object param = params[i];
-                    if (param instanceof String p) ps.setString(i + 1, p);
-                    else if (param instanceof Integer p) ps.setInt(i+1, p);
-                    else if (param == null) ps.setNull(i+1, java.sql.Types.NULL);
+                    if (param instanceof String p) {ps.setString(i + 1, p);}
+                    else if (param instanceof Integer p) {ps.setInt(i+1, p);}
+                    else if (param == null) {ps.setNull(i+1, java.sql.Types.NULL);}
                 }
                 ps.executeUpdate();
 
@@ -291,9 +290,6 @@ public class MySqlDataAccess implements DataAccess {
                     game.gameName(),
                     new Gson().toJson( game.game() ),
                     game.gameID());
-//            if (gameID==0){
-//                throw new DataAccessException("No games were updated! Maybe the gameID does not exist in the database?");
-//            }
         } catch (SQLException e){
             throw new DataAccessException("Database error updating a game", e);
         }
