@@ -157,22 +157,44 @@ public class DataAccessTests {
 
     @Test
     @DisplayName("positive getAuth")
-    void getAuthPositive(){
+    void getAuthPositive() throws DataAccessException {
+        AuthData testAuth = new AuthData("thisWillBeRandomInRealUse", "Kolton");
+        this.dataAccess.createAuth(testAuth);
+
+        AuthData recordedAuth = this.dataAccess.getAuth(testAuth.authToken());
+        Assertions.assertEquals(testAuth, recordedAuth, "recorded AuthData doesn't match supplied AuthData");
     }
 
     @Test
     @DisplayName("negative getAuth")
     void getAuthNegative(){
+        Assertions.assertThrows(DataAccessException.class,
+                ()->this.dataAccess.getAuth(null),
+                "AuthTokens cannot be null");
     }
 
     @Test
     @DisplayName("positive deleteAuth")
-    void deleteAuthPositive(){
+    void deleteAuthPositive() throws DataAccessException {
+        AuthData testAuth = new AuthData("thisWillBeRandomInRealUse", "Kolton");
+        this.dataAccess.createAuth(testAuth);
+
+        HashMap<String, AuthData> authsBeforeDelete = this.dataAccess.getAuthorizations();
+
+        this.dataAccess.deleteAuth(testAuth);
+
+        HashMap<String, AuthData> authsAfterDelete = this.dataAccess.getAuthorizations();
+        Assertions.assertTrue(authsBeforeDelete.containsKey(testAuth.authToken()), "AuthData was not recorded correctly in db");
+        Assertions.assertFalse(authsAfterDelete.containsKey(testAuth.authToken()), "AuthData was not removed properly from db");
+
     }
 
     @Test
     @DisplayName("negative deleteAuth")
     void deleteAuthNegative(){
+        Assertions.assertThrows(DataAccessException.class,
+                ()->this.dataAccess.deleteAuth(null),
+                "AuthTokens cannot be null. A DataAccessException should be thrown if an improper delete call is made");
     }
 
     @Test
@@ -268,10 +290,17 @@ public class DataAccessTests {
 
     @Test
     @DisplayName("negative listGames")
-    void listGamesNegative() throws DataAccessException {
-       ArrayList<GameData> expectedResult = new ArrayList<>();
-       ArrayList<GameData> result = this.dataAccess.listGames();
-       Assertions.assertEquals(expectedResult, result, "should be empty list if no games initialized");
+    void listGamesNegative() throws SQLException, DataAccessException {
+        // let's break the database
+        // and drop the table
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement ps = conn.prepareStatement("DROP TABLE IF EXISTS games")) {
+            ps.executeUpdate();
+        }
+
+        DataAccessException exception = Assertions.assertThrows(DataAccessException.class,
+                ()-> this.dataAccess.listGames(),
+                "if the games table is inaccessible or missing a DataAccessException should throw");
 
     }
 

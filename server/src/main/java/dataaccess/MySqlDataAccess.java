@@ -161,6 +161,9 @@ public class MySqlDataAccess implements DataAccess {
 
     @Override
     public AuthData getAuth(String authToken) throws DataAccessException {
+        if (authToken == null){
+            throw new DataAccessException("authToken cannot be null");
+        }
         try (Connection conn = DatabaseManager.getConnection()) {
             var statement = "SELECT authToken, username FROM authorizations WHERE authToken=?";
             try (PreparedStatement ps = conn.prepareStatement(statement)){
@@ -181,6 +184,9 @@ public class MySqlDataAccess implements DataAccess {
 
     @Override
     public void deleteAuth(AuthData authData) throws DataAccessException {
+        if (authData == null){
+            throw new DataAccessException("authData to delete cannot be null");
+        }
         var statement = "DELETE FROM authorizations WHERE authToken=?";
         try {
             int id = executeUpdate(statement, authData.authToken());
