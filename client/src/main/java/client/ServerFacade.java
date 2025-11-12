@@ -2,8 +2,10 @@ package client;
 
 import com.google.gson.Gson;
 import requests.LoginRequest;
+import requests.LogoutRequest;
 import requests.RegisterRequest;
 import results.LoginResult;
+import results.LogoutResult;
 import results.RegisterResult;
 
 import java.net.URI;
@@ -77,6 +79,13 @@ public class ServerFacade {
         HttpRequest request = buildRequest("POST", "/session", user);
         HttpResponse<String> response = sendRequest( request );
         return handleResponse( response, LoginResult.class);
+    }
+
+
+    public LogoutResult logoutUser(LogoutRequest user) throws ResponseException {
+        HttpRequest request = buildRequest("DELETE", "/session", user);
+        HttpResponse<String> response = sendRequest( request );
+        return handleResponse( response, LogoutResult.class);
     }
 
 

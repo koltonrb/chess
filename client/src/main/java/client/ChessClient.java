@@ -1,11 +1,14 @@
 package client;
 
 import exception.ResponseException;
+import repl.LoggedInRepl;
 import repl.LoggedOutRepl;
 import repl.Repl;
 import requests.LoginRequest;
+import requests.LogoutRequest;
 import requests.RegisterRequest;
 import results.LoginResult;
+import results.LogoutResult;
 import results.RegisterResult;
 
 import java.util.Arrays;
@@ -14,11 +17,12 @@ import java.util.Scanner;
 import static ui.EscapeSequences.*;
 
 public class ChessClient {
-    private String visitorName = null;
     private final ServerFacade server;
 //    private final WebSocketFacade ws;
     private State state = State.SIGNEDOUT;
     private Repl currentRepl;
+    private String username = null;
+    private String authToken = null;
 
     public ChessClient(String serverUrl) {
         server = new ServerFacade(serverUrl);
@@ -51,22 +55,6 @@ public class ChessClient {
         System.out.print("\n" + RESET_TEXT_COLOR + ">>> " + SET_TEXT_COLOR_GREEN);
     }
 
-//    public String evalLoggedOut(String input){
-//        try{
-//            String[] tokens = input.toLowerCase().split(" ");
-//            String cmd = (tokens.length > 0) ? tokens[0] : "help";
-//            String[] params = Arrays.copyOfRange(tokens, 1, tokens.length);
-//            return switch (cmd) {
-//                case "register" -> registerClient( params );
-//                case "login" -> loginClient( params );
-//                case "quit" -> "quit";
-//                default -> help();
-//            };
-//        } catch (ResponseException ex) {
-//            return ex.getMessage();
-//        }
-//    }
-
     public String registerClient (String ... params) throws ResponseException {
         if (state != State.SIGNEDOUT){
             throw new ResponseException(ResponseException.Code.ClientError, "You are already signed in.  Sign out prior to registering another user.");
@@ -80,6 +68,9 @@ public class ChessClient {
             RegisterResult result = server.registerUser( request );
             if ((result != null) && (result.authToken() != null)){
                 state = State.SIGNEDIN;
+                this.username = result.username();
+                this.authToken = result.authToken();
+                this.currentRepl = new LoggedInRepl( this );
             }
             return String.format("new user %s registered successfully", result.username());
         }
@@ -96,10 +87,34 @@ public class ChessClient {
             LoginResult result = server.loginUser( request );
             if ((result != null) && (result.authToken() != null)){
                 state = State.SIGNEDIN;
+                this.username = result.username();
+                this.authToken = result.authToken();
+                this.currentRepl = new LoggedInRepl( this );
+                this.start();
             }
             return String.format("You signed in as %s.", result.username());
         }
         throw new ResponseException(ResponseException.Code.ClientError, "Expected valid username password combination");
+    }
+
+    public String logoutClient( String... params) throws ResponseException {
+        LogoutRequest request = new LogoutRequest();
+        // todo: should this be wrapped in a try/catch block?
+        LogoutResult result = null;
+        try {
+            result = server.logoutUser(request);
+        } catch (Throwable ex) {
+            var msg = ex.toString();
+            System.out.print(msg);
+        }
+        if ((result != null)) {
+            state = State.SIGNEDOUT;
+            this.username = null;
+            this.authToken = null;
+            this.currentRepl = new LoggedOutRepl( this );
+            this.start();
+        }
+        return "You have logged out.";
     }
 
 //    private void assertSignedIn() throws ResponseException{
