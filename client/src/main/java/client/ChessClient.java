@@ -1,7 +1,9 @@
 package client;
 
 import exception.ResponseException;
+import requests.LoginRequest;
 import requests.RegisterRequest;
+import results.LoginResult;
 import results.RegisterResult;
 import ui.EscapeSequences;
 
@@ -54,6 +56,8 @@ public class ChessClient {
             String[] params = Arrays.copyOfRange(tokens, 1, tokens.length);
             return switch (cmd) {
                 case "register" -> registerClient( params );
+                case "login" -> loginClient( params );
+                case "quit" -> "quit";
                 default -> help();
             };
         } catch (ResponseException ex) {
@@ -72,9 +76,26 @@ public class ChessClient {
 
             RegisterRequest request = new RegisterRequest(username, password, email);
             RegisterResult result = server.registerUser( request );
+            if ((result != null) && (result.authToken() != null)){
+                state = State.SIGNEDIN;
+            }
             return String.format("new user %s registered successfully", result.username());
         }
         throw new ResponseException(ResponseException.Code.ClientError, "Expected username, password, and email address");
+    }
+
+    public String loginClient( String... params) throws ResponseException {
+        if (params.length >= 2) {
+            state = State.SIGNEDIN;
+            String username = params[0];
+            String password = params[1];
+
+            LoginRequest request = new LoginRequest(username, password);
+            // todo: should this be wrapped in a try/catch block?
+            LoginResult result = server.loginUser( request );
+            return String.format("You signed in as %s.", result.username());
+        }
+        throw new ResponseException(ResponseException.Code.ClientError, "Expected valid username password combination");
     }
 
     public String help() {

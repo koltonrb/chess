@@ -1,7 +1,9 @@
 package client;
 
 import com.google.gson.Gson;
+import requests.LoginRequest;
 import requests.RegisterRequest;
+import results.LoginResult;
 import results.RegisterResult;
 
 import java.net.URI;
@@ -69,6 +71,12 @@ public class ServerFacade {
         HttpRequest request = buildRequest("POST", "/user", user);
         HttpResponse<String> response = sendRequest(request);
         return handleResponse(response, RegisterResult.class);
+    }
+
+    public LoginResult loginUser(LoginRequest user) throws ResponseException {
+        HttpRequest request = buildRequest("POST", "/session", user);
+        HttpResponse<String> response = sendRequest( request );
+        return handleResponse( response, LoginResult.class);
     }
 
 
