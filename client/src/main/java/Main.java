@@ -11,7 +11,8 @@ public class Main {
         }
 
         try {
-            new ChessClient(serverUrl).run();
+            ChessClient client = new ChessClient(serverUrl);
+            client.start();
         } catch (Throwable ex){
             System.out.printf("Unable to start server: %s%n", ex.getMessage());
         }
