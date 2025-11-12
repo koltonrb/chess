@@ -4,7 +4,6 @@ import com.google.gson.Gson;
 import requests.RegisterRequest;
 import results.RegisterResult;
 
-import java.net.ResponseCache;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -12,6 +11,8 @@ import java.net.http.HttpRequest.BodyPublisher;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
+
+import exception.ResponseException;
 
 
 public class ServerFacade {
@@ -39,16 +40,15 @@ public class ServerFacade {
         }
     }
 
-    private HttpResponse<String> sendRequest(HttpRequest request){
+    private HttpResponse<String> sendRequest(HttpRequest request) throws ResponseException {
         try {
             return client.send(request, BodyHandlers.ofString());
         } catch (Exception ex) {
-            // todo: what sorts of things will cause an error here?
             throw new ResponseException( ResponseException.Code.ServerError, ex.getMessage());
         }
     }
 
-    private <T> T handleResponse(HttpResponse<String> response, Class<T> responseClass){
+    private <T> T handleResponse(HttpResponse<String> response, Class<T> responseClass) throws ResponseException {
         var status = response.statusCode();
         if (!isSuccessful(status)){
             var body = response.body();
@@ -65,8 +65,10 @@ public class ServerFacade {
 
     private boolean isSuccessful(int status) {return status / 100 == 2; }
 
-    public RegisterResult registerUser(RegisterRequest request){
-
+    public RegisterResult registerUser(RegisterRequest user) throws ResponseException {
+        HttpRequest request = buildRequest("POST", "/user", user);
+        HttpResponse<String> response = sendRequest(request);
+        return handleResponse(response, RegisterResult.class);
     }
 
 
