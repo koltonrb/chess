@@ -1,6 +1,8 @@
 package client;
 
 import exception.ResponseException;
+import requests.RegisterRequest;
+import results.RegisterResult;
 import ui.EscapeSequences;
 
 import java.net.http.WebSocket;
@@ -59,11 +61,20 @@ public class ChessClient {
         }
     }
 
-    public String registerClient (String ... params){
-
+    public String registerClient (String ... params) throws ResponseException {
+        if (state != State.SIGNEDOUT){
+            throw new ResponseException(ResponseException.Code.ClientError, "You are already signed in.  Sign out prior to registering another user.");
+        }
         if (params.length >= 3) {
             String username = params[0];
+            String password = params[1];
+            String email = params[2];
+
+            RegisterRequest request = new RegisterRequest(username, password, email);
+            RegisterResult result = server.registerUser( request );
+            return String.format("new user %s registered successfully", result.username());
         }
+        throw new ResponseException(ResponseException.Code.ClientError, "Expected username, password, and email address");
     }
 
     public String help() {

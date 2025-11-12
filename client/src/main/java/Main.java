@@ -1,4 +1,5 @@
 import chess.*;
+import client.ChessClient;
 
 public class Main {
     public static void main(String[] args) {
