@@ -47,7 +47,7 @@ public class LoggedInRepl implements Repl {
             String[] params = Arrays.copyOfRange(tokens, 1, tokens.length);
             return switch (cmd) {
                 case "logout" -> client.logoutClient( params );
-//                case "create" -> client.createGameClient( params );
+                case "create" -> client.createGameClient( params );
 //                case "list" -> client.listGamesClient( params );
 //                case "play" -> client.joinGameClient( params );
 //                case "observe" -> client.observeGameClient( params );

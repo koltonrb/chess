@@ -4,9 +4,11 @@ import exception.ResponseException;
 import repl.LoggedInRepl;
 import repl.LoggedOutRepl;
 import repl.Repl;
+import requests.CreateGameRequest;
 import requests.LoginRequest;
 import requests.LogoutRequest;
 import requests.RegisterRequest;
+import results.CreateGameResult;
 import results.LoginResult;
 import results.LogoutResult;
 import results.RegisterResult;
@@ -70,6 +72,17 @@ public class ChessClient {
             LoginResult result = null;
             try {
                 result = server.loginUser(request);
+                if ((result != null) && (result.authToken() != null)){
+                    state = State.SIGNEDIN;
+                    this.username = result.username();
+                    this.authToken = result.authToken();
+                    this.currentRepl = new LoggedInRepl( this );
+                    System.out.printf("You signed in as %s%n", result.username());
+                    server.setAuthToken( this.authToken );
+                    this.start();
+                }
+                return String.format("You signed in as %s", result.username());
+
             } catch (ResponseException ex) {
                 if( ex.code() == ResponseException.Code.Unauthorized){
                     return "please provide a matching username/password combination.";
@@ -83,17 +96,8 @@ public class ChessClient {
                 System.err.println("Logout failed at loginClient:");
                 ex.printStackTrace();
             }
-            if ((result != null) && (result.authToken() != null)){
-                state = State.SIGNEDIN;
-                this.username = result.username();
-                this.authToken = result.authToken();
-                this.currentRepl = new LoggedInRepl( this );
-                System.out.printf("You signed in as %s%n", result.username());
-                this.start();
-            }
-            return String.format("You signed in as %s", result.username());
         }
-        throw new ResponseException(ResponseException.Code.ClientError, "Expected valid username password combination");
+        return "Expected valid username password combination";
     }
 
     public String logoutClient( String... params) throws ResponseException {
@@ -101,7 +105,6 @@ public class ChessClient {
         // todo: should this be wrapped in a try/catch block?
         LogoutResult result = null;
         try {
-            server.setAuthToken( this.authToken );
             result = server.logoutUser(request);
         } catch (ResponseException ex) {
             return "failed to logout";
@@ -116,11 +119,30 @@ public class ChessClient {
             state = State.SIGNEDOUT;
             this.username = null;
             this.authToken = null;
+            this.server.setAuthToken( this.authToken );
             this.currentRepl = new LoggedOutRepl( this );
             System.out.println("You have logged out.");
             this.start();
         }
         return "You have logged out";
+    }
+
+    public String createGameClient( String ... params) {
+        if (params.length < 1) {
+            return "A name must be provided for the game to be created";
+        }
+        // FIXME: the authtoken is coming up as null...
+        String gamename = params[0];
+        try{
+            CreateGameRequest request = new CreateGameRequest(gamename);
+            CreateGameResult result = server.createGame( request );
+            if ((result != null) && (result.gameID() != null)){
+                return String.format("Game %s created successfully.", gamename);
+            }
+        } catch (ResponseException ex){
+            return "Game creation failed.  You must provide a valid name for the game.";
+        }
+        return "Expected a valid name for the game";
     }
 
 //    private void assertSignedIn() throws ResponseException{

@@ -1,9 +1,11 @@
 package client;
 
 import com.google.gson.Gson;
+import requests.CreateGameRequest;
 import requests.LoginRequest;
 import requests.LogoutRequest;
 import requests.RegisterRequest;
+import results.CreateGameResult;
 import results.LoginResult;
 import results.LogoutResult;
 import results.RegisterResult;
@@ -97,6 +99,12 @@ public class ServerFacade {
         HttpRequest request = buildRequest("DELETE", "/session", user);
         HttpResponse<String> response = sendRequest( request );
         return handleResponse( response, LogoutResult.class);
+    }
+
+    public CreateGameResult createGame(CreateGameRequest userInput) throws ResponseException {
+        HttpRequest request = buildRequest("POST", "/game", userInput);
+        HttpResponse<String> response = sendRequest( request );
+        return handleResponse( response, CreateGameResult.class);
     }
 
 
