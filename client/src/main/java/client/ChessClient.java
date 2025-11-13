@@ -70,10 +70,17 @@ public class ChessClient {
             LoginResult result = null;
             try {
                 result = server.loginUser(request);
-            } catch (Throwable ex) {
+            } catch (ResponseException ex) {
+                if( ex.code() == ResponseException.Code.Unauthorized){
+                    return "please provide a matching username/password combination.";
+                }
+                return "try logging in again with a valid username/password combination.";
+            }
+            catch (Throwable ex) {
+                // TODO: get rid of the stack trace!
 //            var msg = ex.toString();
 //            System.out.print(msg);
-                System.err.println("Logout failed at logoutClient:");
+                System.err.println("Logout failed at loginClient:");
                 ex.printStackTrace();
             }
             if ((result != null) && (result.authToken() != null)){
@@ -81,9 +88,10 @@ public class ChessClient {
                 this.username = result.username();
                 this.authToken = result.authToken();
                 this.currentRepl = new LoggedInRepl( this );
+                System.out.printf("You signed in as %s%n", result.username());
                 this.start();
             }
-            return String.format("You signed in as %s.", result.username());
+            return String.format("You signed in as %s", result.username());
         }
         throw new ResponseException(ResponseException.Code.ClientError, "Expected valid username password combination");
     }
@@ -95,7 +103,10 @@ public class ChessClient {
         try {
             server.setAuthToken( this.authToken );
             result = server.logoutUser(request);
+        } catch (ResponseException ex) {
+            return "failed to logout";
         } catch (Throwable ex) {
+            // todo: get rid of the stack trace here
 //            var msg = ex.toString();
 //            System.out.print(msg);
             System.err.println("Logout failed at logoutClient:");
@@ -106,9 +117,10 @@ public class ChessClient {
             this.username = null;
             this.authToken = null;
             this.currentRepl = new LoggedOutRepl( this );
+            System.out.println("You have logged out.");
             this.start();
         }
-        return "You have logged out.";
+        return "You have logged out";
     }
 
 //    private void assertSignedIn() throws ResponseException{
