@@ -1,14 +1,8 @@
 package client;
 
 import com.google.gson.Gson;
-import requests.CreateGameRequest;
-import requests.LoginRequest;
-import requests.LogoutRequest;
-import requests.RegisterRequest;
-import results.CreateGameResult;
-import results.LoginResult;
-import results.LogoutResult;
-import results.RegisterResult;
+import requests.*;
+import results.*;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -107,6 +101,16 @@ public class ServerFacade {
         return handleResponse( response, CreateGameResult.class);
     }
 
+    public ListGamesResult listGames(ListGamesRequest userInput) throws ResponseException {
+        HttpRequest request = buildRequest("GET", "/game", userInput);
+        HttpResponse<String> response = sendRequest( request );
+        return handleResponse( response, ListGamesResult.class);
+    }
 
+    public JoinGameResult joinGame(JoinGameRequest userInput) throws ResponseException {
+        HttpRequest request = buildRequest("PUT", "/game", userInput);
+        HttpResponse<String> response = sendRequest( request );
+        return handleResponse( response, JoinGameResult.class);
+    }
 
 }

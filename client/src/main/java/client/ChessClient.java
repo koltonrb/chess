@@ -1,20 +1,15 @@
 package client;
 
 import exception.ResponseException;
+import model.GameData;
 import repl.LoggedInRepl;
 import repl.LoggedOutRepl;
 import repl.Repl;
-import requests.CreateGameRequest;
-import requests.LoginRequest;
-import requests.LogoutRequest;
-import requests.RegisterRequest;
-import results.CreateGameResult;
-import results.LoginResult;
-import results.LogoutResult;
-import results.RegisterResult;
+import requests.*;
+import results.*;
 
-import java.util.Arrays;
-import java.util.Scanner;
+import java.util.HashMap;
+import java.util.Map;
 
 import static ui.EscapeSequences.*;
 
@@ -25,10 +20,13 @@ public class ChessClient {
     private Repl currentRepl;
     private String username = null;
     private String authToken = null;
+    private HashMap<Integer, GameData> gameListDisplayed;
 
     public ChessClient(String serverUrl) {
         server = new ServerFacade(serverUrl);
         currentRepl = new LoggedOutRepl( this );
+        gameListDisplayed = new HashMap<Integer, GameData>();
+
 //        ws = new WebSocketFacade(serverUrl, this);
     }
 
@@ -56,6 +54,8 @@ public class ChessClient {
                 this.username = result.username();
                 this.authToken = result.authToken();
                 this.currentRepl = new LoggedInRepl( this );
+                this.server.setAuthToken( this.authToken );
+                this.getListOfGamesClient();
             }
             return String.format("new user %s registered successfully", result.username());
         }
@@ -79,6 +79,7 @@ public class ChessClient {
                     this.currentRepl = new LoggedInRepl( this );
                     System.out.printf("You signed in as %s%n", result.username());
                     server.setAuthToken( this.authToken );
+                    this.getListOfGamesClient();
                     this.start();
                 }
                 return String.format("You signed in as %s", result.username());
@@ -131,7 +132,6 @@ public class ChessClient {
         if (params.length < 1) {
             return "A name must be provided for the game to be created";
         }
-        // FIXME: the authtoken is coming up as null...
         String gamename = params[0];
         try{
             CreateGameRequest request = new CreateGameRequest(gamename);
@@ -143,6 +143,94 @@ public class ChessClient {
             return "Game creation failed.  You must provide a valid name for the game.";
         }
         return "Expected a valid name for the game";
+    }
+
+    private void printGames(Map<Integer, GameData> games){
+        System.out.println("Games:");
+        for (Map.Entry<Integer, GameData> entry : games.entrySet()) {
+            int i = entry.getKey();  // not gameID from db entry
+            GameData game = entry.getValue();
+
+            System.out.printf("%d. %s%n", i, game.gameName());
+            System.out.printf("\twhite: %s%n", game.whiteUsername() != null ? game.whiteUsername() : "—");
+            System.out.printf("\tblack: %s%n", game.blackUsername() != null ? game.whiteUsername() : "—");
+            System.out.println();  // want to separate between game entries
+
+        }
+    }
+
+    private void getListOfGamesClient(){
+        try{
+            this.gameListDisplayed.clear();
+            ListGamesRequest request = new ListGamesRequest();
+            ListGamesResult result = server.listGames( request );
+            if ((result != null) && (result.games() != null)){
+                for (int i = 0; i < result.games().size(); i++) {
+                    this.gameListDisplayed.put(i + 1, result.games().get(i));
+                }
+            }
+        } catch (ResponseException ex){
+            // fixme: better message here
+            System.out.println(ex.toString());
+        }
+    }
+
+
+    public String listGamesClient(){
+        try{
+            // TODO: reset gamesdisplayed here?
+            this.gameListDisplayed.clear();
+            ListGamesRequest request = new ListGamesRequest();
+            ListGamesResult result = server.listGames( request );
+            if ((result != null) && (result.games() != null)){
+                for (int i = 0; i < result.games().size(); i++) {
+                    this.gameListDisplayed.put(i + 1, result.games().get(i));
+                }
+                printGames(this.gameListDisplayed);
+                return "";
+            }
+        } catch (ResponseException ex){
+            return "Unauthorized.  Are you logged in?";
+        }
+        return "Games: \n no games yet.  Try creating one!";
+    }
+
+    public String joinGameClient(String... params){
+        if (this.gameListDisplayed.size() == 0){
+            return
+        }
+        if (params.length < 2) {
+            return "To join a game, use command 'join <game number> <white/black>'";
+        }
+        Integer i = 1;
+        try {
+            i = Integer.parseInt(params[0]);
+        } catch (Exception ex) {
+            return "game number must be an integer";
+        }
+        String color = params[1];
+        if ((!color.equals("white")) && (!color.equals("black"))){
+            return "team color must be either 'white' or 'black' only.";
+        }
+        try{
+            JoinGameRequest request = new JoinGameRequest(color, this.gameListDisplayed.get(i).gameID());
+            JoinGameResult result = server.joinGame( request );
+            if (result != null){
+                return String.format("%s is now playing in game '%s' as %s",
+                        this.username,
+                        this.gameListDisplayed.get(i).gameName(),
+                        color);
+            }
+        } catch (ResponseException ex){
+            if (ex.code() == ResponseException.Code.AlreadyTaken){
+                return String.format("Failed to join game %s because %s is already playing as %s.",
+                        this.gameListDisplayed.get(i).gameName(),
+                        color.equals("white") ? this.gameListDisplayed.get(i).whiteUsername() : this.gameListDisplayed.get(i).blackUsername(),
+                        color);
+            }
+            return "failed to join game";
+        }
+        return "failed to join game";
     }
 
 //    private void assertSignedIn() throws ResponseException{
