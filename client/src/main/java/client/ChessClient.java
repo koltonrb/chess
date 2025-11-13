@@ -8,6 +8,7 @@ import repl.Repl;
 import requests.*;
 import results.*;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -195,6 +196,12 @@ public class ChessClient {
             i = Integer.parseInt(params[0]);
         } catch (Exception ex) {
             return "game number must be an integer";
+        }
+        if (!gameListDisplayed.containsKey(i)){
+            return String.format("game %d does not exist. \nPlease enter a game number between %d and %d",
+                    i,
+                    Collections.min(gameListDisplayed.keySet() ),
+                    Collections.max(gameListDisplayed.keySet() ));
         }
         String color = params[1].toUpperCase();
         if ((!color.equals("WHITE")) && (!color.equals("BLACK"))){
