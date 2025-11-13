@@ -34,23 +34,6 @@ public class ChessClient {
         currentRepl.run();
     }
 
-//    public void loggedInRepl() {
-//        Scanner scanner = new Scanner(System.in);
-//        var result = "";
-//        while (!result.equals("logout")){
-//            printPrompt();
-//            String line = scanner.nextLine();
-//
-//            try {
-//                result = evalLoggedIn(line);
-//                System.out.print(SET_TEXT_COLOR_GREEN + result);
-//            } catch (Throwable ex) {
-//                var msg = ex.toString();
-//                System.out.print(msg);
-//            }
-//        }
-//    }
-
     private void printPrompt() {
         System.out.print("\n" + RESET_TEXT_COLOR + ">>> " + SET_TEXT_COLOR_GREEN);
     }
@@ -84,7 +67,15 @@ public class ChessClient {
 
             LoginRequest request = new LoginRequest(username, password);
             // todo: should this be wrapped in a try/catch block?
-            LoginResult result = server.loginUser( request );
+            LoginResult result = null;
+            try {
+                result = server.loginUser(request);
+            } catch (Throwable ex) {
+//            var msg = ex.toString();
+//            System.out.print(msg);
+                System.err.println("Logout failed at logoutClient:");
+                ex.printStackTrace();
+            }
             if ((result != null) && (result.authToken() != null)){
                 state = State.SIGNEDIN;
                 this.username = result.username();
@@ -102,10 +93,13 @@ public class ChessClient {
         // todo: should this be wrapped in a try/catch block?
         LogoutResult result = null;
         try {
+            server.setAuthToken( this.authToken );
             result = server.logoutUser(request);
         } catch (Throwable ex) {
-            var msg = ex.toString();
-            System.out.print(msg);
+//            var msg = ex.toString();
+//            System.out.print(msg);
+            System.err.println("Logout failed at logoutClient:");
+            ex.printStackTrace(); // This prints full stack trace to stderr
         }
         if ((result != null)) {
             state = State.SIGNEDOUT;

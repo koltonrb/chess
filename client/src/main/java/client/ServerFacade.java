@@ -22,8 +22,16 @@ import exception.ResponseException;
 public class ServerFacade {
     private final HttpClient client = HttpClient.newHttpClient();
     private final String serverUrl;
+    private String authToken;
 
-    public ServerFacade(String url){ serverUrl = url; }
+    public ServerFacade(String url){
+        serverUrl = url;
+        authToken = null;
+    }
+
+    public void setAuthToken(String authToken) {
+        this.authToken = authToken;
+    }
 
     private HttpRequest buildRequest(String method, String path, Object body){
         HttpRequest.Builder builder = HttpRequest.newBuilder()
@@ -31,6 +39,9 @@ public class ServerFacade {
                 .method(method, makeRequestBody(body));
         if (body != null){
             builder.setHeader("Content-Type", "application/json");
+        }
+        if (authToken != null) {
+            builder.setHeader("authorization", this.authToken);
         }
         HttpRequest request = builder.build();
         return request;
@@ -48,7 +59,7 @@ public class ServerFacade {
         try {
             return client.send(request, BodyHandlers.ofString());
         } catch (Exception ex) {
-            throw new ResponseException( ResponseException.Code.ServerError, ex.getMessage());
+            throw new ResponseException( ResponseException.Code.OtherServerError, ex.getMessage());
         }
     }
 
@@ -57,7 +68,7 @@ public class ServerFacade {
         if (!isSuccessful(status)){
             var body = response.body();
             if (body != null) {
-                throw ResponseException.fromJson(body);
+                throw ResponseException.fromJson(body, status);
             }
             throw new ResponseException(ResponseException.fromHttpStatusCode(status), "other failure: " + status);
         }
