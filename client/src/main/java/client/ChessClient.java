@@ -56,6 +56,7 @@ public class ChessClient {
                 this.currentRepl = new LoggedInRepl( this );
                 this.server.setAuthToken( this.authToken );
                 this.getListOfGamesClient();
+                this.start();
             }
             return String.format("new user %s registered successfully", result.username());
         }
@@ -177,27 +178,14 @@ public class ChessClient {
 
 
     public String listGamesClient(){
-        try{
-            // TODO: reset gamesdisplayed here?
-            this.gameListDisplayed.clear();
-            ListGamesRequest request = new ListGamesRequest();
-            ListGamesResult result = server.listGames( request );
-            if ((result != null) && (result.games() != null)){
-                for (int i = 0; i < result.games().size(); i++) {
-                    this.gameListDisplayed.put(i + 1, result.games().get(i));
-                }
-                printGames(this.gameListDisplayed);
-                return "";
-            }
-        } catch (ResponseException ex){
-            return "Unauthorized.  Are you logged in?";
-        }
-        return "Games: \n no games yet.  Try creating one!";
+        getListOfGamesClient();
+        printGames(this.gameListDisplayed);
+        return "";
     }
 
     public String joinGameClient(String... params){
         if (this.gameListDisplayed.size() == 0){
-            return
+            return "There are no games to join.  Try creating a game first.";
         }
         if (params.length < 2) {
             return "To join a game, use command 'join <game number> <white/black>'";
@@ -208,8 +196,8 @@ public class ChessClient {
         } catch (Exception ex) {
             return "game number must be an integer";
         }
-        String color = params[1];
-        if ((!color.equals("white")) && (!color.equals("black"))){
+        String color = params[1].toUpperCase();
+        if ((!color.equals("WHITE")) && (!color.equals("BLACK"))){
             return "team color must be either 'white' or 'black' only.";
         }
         try{
@@ -225,7 +213,7 @@ public class ChessClient {
             if (ex.code() == ResponseException.Code.AlreadyTaken){
                 return String.format("Failed to join game %s because %s is already playing as %s.",
                         this.gameListDisplayed.get(i).gameName(),
-                        color.equals("white") ? this.gameListDisplayed.get(i).whiteUsername() : this.gameListDisplayed.get(i).blackUsername(),
+                        color.equals("WHITE") ? this.gameListDisplayed.get(i).whiteUsername() : this.gameListDisplayed.get(i).blackUsername(),
                         color);
             }
             return "failed to join game";

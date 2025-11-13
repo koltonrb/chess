@@ -44,7 +44,9 @@ public class LoggedOutRepl implements Repl{
 
     public String evalLoggedOut(String input){
         try{
-            String[] tokens = input.toLowerCase().split(" ");
+            String[] tokens = input.trim()
+                    .toLowerCase()
+                    .split("\\s+");
             String cmd = (tokens.length > 0) ? tokens[0] : "help";
             String[] params = Arrays.copyOfRange(tokens, 1, tokens.length);
             return switch (cmd) {
