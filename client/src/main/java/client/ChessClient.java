@@ -141,9 +141,6 @@ public class ChessClient {
             this.username = null;
             this.authToken = null;
             this.server.setAuthToken( this.authToken );
-//            this.currentRepl = new LoggedOutRepl( this );
-//            System.out.println("You have logged out.");
-//            this.start();
             return "You have logged out.";
         }
         return "";
