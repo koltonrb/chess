@@ -52,7 +52,7 @@ public class LoggedInRepl implements Repl {
                 case "create" -> client.createGameClient( params );
                 case "list" -> client.listGamesClient();
                 case "play" -> client.joinGameClient( params );
-//                case "observe" -> client.observeGameClient( params );
+                case "observe" -> client.observeGameClient( params );
                 default -> help();
             };
             } catch (ResponseException ex) {
@@ -61,13 +61,13 @@ public class LoggedInRepl implements Repl {
     }
 
     public String help() {
-        //TODO add better logged in help cues.
         return """
-                -logout
-                -create game "create <game name>"
-                -list games "list" 
-                -play game 
-                -observe game 
+                SELECT GAME ACTION:
+                -end session "logout"
+                -create a new chess game "create <game name>"
+                -list current chess games and players "list"
+                -join an existing chess game "play <game number> <white/black>"
+                -watch a game "observe"
                 """;
     }
 }
