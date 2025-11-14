@@ -256,10 +256,10 @@ public class ChessClient {
                     Collections.max(gameListDisplayed.keySet() ));
         }
 
-        String board_to_print = new DrawChess(this.gameListDisplayed.get(i).game().getBoard(),
+        String boardToPrint = new DrawChess(this.gameListDisplayed.get(i).game().getBoard(),
                                                 ChessGame.TeamColor.WHITE).main();
 
-        return board_to_print;
+        return boardToPrint;
     }
 
 }
