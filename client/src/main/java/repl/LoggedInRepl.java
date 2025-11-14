@@ -15,12 +15,12 @@ public class LoggedInRepl implements Repl {
     }
 
     @Override
-    public void run() {
+    public String run() {
         System.out.print(help());
 
         Scanner scanner = new Scanner(System.in);
         var result = "";
-        while (!result.equals("logout")){
+        while (!result.contains("You have logged out") ){
             printPrompt();
             String line = scanner.nextLine();
 
@@ -33,6 +33,7 @@ public class LoggedInRepl implements Repl {
             }
         }
         System.out.println();
+        return result;
     }
 
     private void printPrompt() {
@@ -57,6 +58,7 @@ public class LoggedInRepl implements Repl {
 
     public String help() {
         return """
+                \n
                 SELECT GAME ACTION:
                 -end session "logout"
                 -create a new chess game "create <game name>"

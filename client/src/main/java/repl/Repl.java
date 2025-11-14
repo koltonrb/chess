@@ -1,5 +1,5 @@
 package repl;
 
 public interface Repl {
-    void run();
+    String run();
 }

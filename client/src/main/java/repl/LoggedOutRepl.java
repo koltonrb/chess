@@ -15,14 +15,14 @@ public class LoggedOutRepl implements Repl{
     }
 
     @Override
-    public void run() {
+    public String run() {
         System.out.println(SET_TEXT_COLOR_BLUE);
         System.out.println("Welcome to Chess! Sign in or register to begin.");
         System.out.print(help());
 
         Scanner scanner = new Scanner(System.in);
         var result = "";
-        while (!result.equals("quit")){
+        while ((!result.equals("quit")) && (!result.contains("You signed in") && (!result.contains("registered successfully")))){
             printPrompt();
             String line = scanner.nextLine();
 
@@ -35,6 +35,7 @@ public class LoggedOutRepl implements Repl{
             }
         }
         System.out.println();
+        return result;
     }
 
     private void printPrompt() {

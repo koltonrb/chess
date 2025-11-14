@@ -12,6 +12,7 @@ import ui.DrawChess;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Scanner;
 
 import static ui.EscapeSequences.*;
 
@@ -33,7 +34,21 @@ public class ChessClient {
     }
 
     public void start(){
-        currentRepl.run();
+        currentRepl = new LoggedOutRepl( this );
+        Scanner scanner = new Scanner(System.in);
+
+        while(true){
+            String result = currentRepl.run();
+            if (result.equals("quit")){
+                System.out.println("Goodbye");
+                break;
+            }
+            if (result.contains("You signed in as")  || result.contains("registered successfully")){
+                currentRepl = new LoggedInRepl( this);
+            } else if (result.contains("logged out") || result.equals("logout")){
+                currentRepl = new LoggedOutRepl( this );
+            }
+        }
     }
 
     private void printPrompt() {
@@ -61,10 +76,10 @@ public class ChessClient {
                 state = State.SIGNEDIN;
                 this.username = result.username();
                 this.authToken = result.authToken();
-                this.currentRepl = new LoggedInRepl(this);
+//                this.currentRepl = new LoggedInRepl(this);
                 this.server.setAuthToken(this.authToken);
                 this.getListOfGamesClient();
-                this.start();
+//                this.start();
                 return String.format("new user %s registered successfully", result.username());
             }
         } catch (ResponseException ex){
@@ -95,11 +110,11 @@ public class ChessClient {
                     state = State.SIGNEDIN;
                     this.username = result.username();
                     this.authToken = result.authToken();
-                    this.currentRepl = new LoggedInRepl( this );
-                    System.out.printf("You signed in as %s%n", result.username());
+//                    this.currentRepl = new LoggedInRepl( this );
+//                    System.out.printf("You signed in as %s%n", result.username());
                     server.setAuthToken( this.authToken );
                     this.getListOfGamesClient();
-                    this.start();
+//                    this.start();
                 }
                 return String.format("You signed in as %s", result.username());
 
@@ -115,7 +130,6 @@ public class ChessClient {
 
     public String logoutClient( String... params) {
         LogoutRequest request = new LogoutRequest();
-        // todo: should this be wrapped in a try/catch block?
         LogoutResult result = null;
         try {
             result = server.logoutUser(request);
@@ -127,9 +141,10 @@ public class ChessClient {
             this.username = null;
             this.authToken = null;
             this.server.setAuthToken( this.authToken );
-            this.currentRepl = new LoggedOutRepl( this );
-            System.out.println("You have logged out.");
-            this.start();
+//            this.currentRepl = new LoggedOutRepl( this );
+//            System.out.println("You have logged out.");
+//            this.start();
+            return "You have logged out.";
         }
         return "";
     }
@@ -218,6 +233,7 @@ public class ChessClient {
                 String boardToPrint = "";
                 boardToPrint = new DrawChess(this.gameListDisplayed.get(i).game().getBoard(),
                         color.equals("WHITE") ? ChessGame.TeamColor.WHITE : ChessGame.TeamColor.BLACK).main();
+                getListOfGamesClient();  // will reflect that player is now in a game on the list
                 return String.format("%s is now playing in game '%s' as %s\n\n%s",
                         this.username,
                         this.gameListDisplayed.get(i).gameName(),
