@@ -18,17 +18,12 @@ public class DrawChess {
 
     // padded characters
     private static final String EMPTY = " ";  // should be em space?
-    // todo more here?  define the characters for each piece type and team?
-
     private static final List<String> WHITE_COLUMNS = List.of("A", "B", "C", "D", "E", "F", "G", "H");
     private static final List<String> BLACK_COLUMNS = List.of("H", "G", "F", "E", "D", "C", "B", "A");
-    private static final List<String> WHITE_ROWS = List.of("1", "2", "3", "4", "5", "6" , "7", "8");
-    private static final List<String> BLACK_ROWS = List.of("8", "7", "6", "5", "4", "3", "2", "1");
 
     private final ChessBoard board;
     private final ChessGame.TeamColor perspective;
     private final List<String> COLUMNS;
-    private final List<String> ROWS;
 
     public static final Map<ChessPiece.PieceType, String> PIECE_TO_STRING = Map.of(
             ChessPiece.PieceType.PAWN,   "P",
@@ -47,10 +42,8 @@ public class DrawChess {
 
         if (this.perspective == ChessGame.TeamColor.WHITE) {
             this.COLUMNS = WHITE_COLUMNS;
-            this.ROWS = WHITE_ROWS;
         } else {
             this.COLUMNS = BLACK_COLUMNS;
-            this.ROWS = BLACK_ROWS;
         }
     }
 
@@ -79,9 +72,26 @@ public class DrawChess {
     }
 
     private void drawBoard(StringBuilder sb){
-        for (int squareRow = 0; squareRow < BOARD_SIZE_IN_SQUARES; ++squareRow){
+
+        int startRow = switch (this.perspective) {
+            case ChessGame.TeamColor.WHITE -> 7;
+            case ChessGame.TeamColor.BLACK -> 0;
+        };
+        int rowIncrement = switch (this.perspective) {
+            case ChessGame.TeamColor.WHITE -> -1;
+            case ChessGame.TeamColor.BLACK -> 1;
+        };
+        int endRow = switch (this.perspective) {
+            case ChessGame.TeamColor.WHITE -> -1;
+            case ChessGame.TeamColor.BLACK -> 8;
+        };
+
+        for (int squareRow = startRow;
+             (rowIncrement > 0) ? (squareRow < endRow) : (squareRow > endRow);
+             squareRow += rowIncrement){
+
             setBoarder(sb);
-            sb.append(String.format("%s ", this.ROWS.get(squareRow)));
+            sb.append(String.format("%s ", squareRow + 1));
             if (squareRow % 2 == 0){
                 // then white square first
                 current_square_color = ChessGame.TeamColor.WHITE;
@@ -91,7 +101,8 @@ public class DrawChess {
                 setBlackSpace(sb);
             }
             sb.append(SET_TEXT_BOLD);
-            for (int boardCol = 0; boardCol < BOARD_SIZE_IN_SQUARES; ++boardCol){
+            for (int boardCol = 7; boardCol >= 0; --boardCol){
+
                 sb.append(EMPTY);
                 ChessPiece piece = this.board.getPiece(new ChessPosition(squareRow + 1, boardCol +1));
                 if (piece != null){
@@ -115,7 +126,7 @@ public class DrawChess {
             }
             sb.append(RESET_TEXT_BOLD_FAINT);
             setBoarder(sb);
-            sb.append(String.format("%s ", this.ROWS.get(squareRow)));
+            sb.append(String.format(" %s", squareRow + 1));
             sb.append("\n");
         }
     }
