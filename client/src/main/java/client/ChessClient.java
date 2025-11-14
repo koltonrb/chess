@@ -141,6 +141,7 @@ public class ChessClient {
             CreateGameRequest request = new CreateGameRequest(gamename);
             CreateGameResult result = server.createGame( request );
             if ((result != null) && (result.gameID() != null)){
+                this.getListOfGamesClient();  // this will allow user to join game with the next game number without calling list
                 return String.format("Game %s created successfully.", gamename);
             }
         } catch (ResponseException ex){

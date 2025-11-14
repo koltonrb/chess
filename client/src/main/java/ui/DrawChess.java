@@ -22,10 +22,13 @@ public class DrawChess {
 
     private static final List<String> WHITE_COLUMNS = List.of("A", "B", "C", "D", "E", "F", "G", "H");
     private static final List<String> BLACK_COLUMNS = List.of("H", "G", "F", "E", "D", "C", "B", "A");
+    private static final List<String> WHITE_ROWS = List.of("1", "2", "3", "4", "5", "6" , "7", "8");
+    private static final List<String> BLACK_ROWS = List.of("8", "7", "6", "5", "4", "3", "2", "1");
 
     private final ChessBoard board;
     private final ChessGame.TeamColor perspective;
     private final List<String> COLUMNS;
+    private final List<String> ROWS;
 
     public static final Map<ChessPiece.PieceType, String> PIECE_TO_STRING = Map.of(
             ChessPiece.PieceType.PAWN,   "P",
@@ -44,8 +47,10 @@ public class DrawChess {
 
         if (this.perspective == ChessGame.TeamColor.WHITE) {
             this.COLUMNS = WHITE_COLUMNS;
+            this.ROWS = WHITE_ROWS;
         } else {
             this.COLUMNS = BLACK_COLUMNS;
+            this.ROWS = BLACK_ROWS;
         }
     }
 
@@ -56,6 +61,7 @@ public class DrawChess {
         sb.append(ERASE_SCREEN);
         drawHeaders(sb);
         drawBoard(sb);
+        drawHeaders(sb);
 
         return sb.toString();
     }
@@ -65,7 +71,7 @@ public class DrawChess {
         sb.append(EMPTY); // for left hand row labels
         sb.append(EMPTY);
         for (String col : this.COLUMNS){
-            sb.append(String.format(EMPTY + "%s", col));
+            sb.append(String.format(EMPTY + "%s" + EMPTY, col));
         }
         sb.append(EMPTY);  // for right hand row labels
         sb.append(EMPTY);
@@ -73,9 +79,9 @@ public class DrawChess {
     }
 
     private void drawBoard(StringBuilder sb){
-        for (int squareRow = 0; squareRow < SQUARE_SIZE_IN_PADDED_CHARS; ++squareRow){
+        for (int squareRow = 0; squareRow < BOARD_SIZE_IN_SQUARES; ++squareRow){
             setBoarder(sb);
-            sb.append(String.format("%d ", squareRow));
+            sb.append(String.format("%s ", this.ROWS.get(squareRow)));
             if (squareRow % 2 == 0){
                 // then white square first
                 current_square_color = ChessGame.TeamColor.WHITE;
@@ -84,6 +90,7 @@ public class DrawChess {
                 current_square_color = ChessGame.TeamColor.BLACK;
                 setBlackSpace(sb);
             }
+            sb.append(SET_TEXT_BOLD);
             for (int boardCol = 0; boardCol < BOARD_SIZE_IN_SQUARES; ++boardCol){
                 sb.append(EMPTY);
                 ChessPiece piece = this.board.getPiece(new ChessPosition(squareRow + 1, boardCol +1));
@@ -106,8 +113,9 @@ public class DrawChess {
                     setBlackSpace(sb);
                 }
             }
+            sb.append(RESET_TEXT_BOLD_FAINT);
             setBoarder(sb);
-            sb.append(String.format(" %d", squareRow));
+            sb.append(String.format("%s ", this.ROWS.get(squareRow)));
             sb.append("\n");
         }
     }
