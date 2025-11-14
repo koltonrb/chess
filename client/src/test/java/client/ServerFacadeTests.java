@@ -2,7 +2,9 @@ package client;
 
 import exception.ResponseException;
 import org.junit.jupiter.api.*;
-import requests.RegisterRequest;
+import requests.*;
+import results.LoginResult;
+import results.LogoutResult;
 import server.Server;
 
 
@@ -24,6 +26,10 @@ public class ServerFacadeTests {
         server.stop();
     }
 
+    @BeforeEach
+    void clearDB() throws ResponseException {
+        facade.clearDB( new ClearRequest("db"));
+    }
 
     @Test
     public void sampleTest() {
@@ -36,4 +42,71 @@ public class ServerFacadeTests {
         var authData = facade.registerUser(new RegisterRequest("player1", "password", "p1@email.com"));
         Assertions.assertTrue(authData.authToken().length() > 10);
     }
+
+    @Test
+    @DisplayName("registerNegative")
+    void registerNegative() throws ResponseException {
+        var authData = facade.registerUser(new RegisterRequest("player1", "password", "p1@email.com"));
+        ResponseException myException = Assertions.assertThrows(ResponseException.class,
+                () -> facade.registerUser(new RegisterRequest("player1", "secret", "p1@yahoo.com")));
+    }
+
+    @Test
+    @DisplayName("positiveLogin")
+    void positiveLogin() throws ResponseException {
+        var authData = facade.registerUser(new RegisterRequest("player1", "password", "p1@email.com"));
+        var result = facade.loginUser(new LoginRequest("player1", "password"));
+        Assertions.assertEquals("player1", result.username());
+        Assertions.assertTrue(result.authToken().length() > 10);
+    }
+
+    @Test
+    @DisplayName("negativeLogin")
+    void negativeLogin() throws ResponseException {
+        var authData = facade.registerUser(new RegisterRequest("player1", "password", "p1@email.com"));
+        ResponseException myException = Assertions.assertThrows(ResponseException.class,
+                () -> facade.loginUser(new LoginRequest("player1", "notTHEpassword")));
+
+    }
+
+    @Test
+    @DisplayName("positiveLogout")
+    void positiveLogout() throws ResponseException {
+        var authData = facade.registerUser(new RegisterRequest("player1", "password", "p1@email.com"));
+        facade.setAuthToken(authData.authToken());
+        var loginResult = facade.loginUser(new LoginRequest("player1", "password"));
+        var logoutResult = facade.logoutUser(new LogoutRequest());
+        Assertions.assertNotNull(logoutResult, "Should return LogoutResult, not null");
+        Assertions.assertInstanceOf(LogoutResult.class, logoutResult, "Should return LogoutResult object");
+    }
+
+    @Test
+    @DisplayName("negativeLogout")
+    void negativeLogout() throws ResponseException {
+        var authData = facade.registerUser(new RegisterRequest("player1", "password", "p1@email.com"));
+        // note not setting the authtoken
+        var loginResult = facade.loginUser(new LoginRequest("player1", "password"));
+        ResponseException myException = Assertions.assertThrows(ResponseException.class,
+                () -> facade.logoutUser(new LogoutRequest()), "should fail to logout if no authtoken provided");
+    }
+
+    @Test
+    @DisplayName("positiveCreateGame")
+    void positiveCreateGame() throws ResponseException {
+        var authData = facade.registerUser(new RegisterRequest("player1", "password", "p1@email.com"));
+        facade.setAuthToken(authData.authToken());
+        var loginResult = facade.loginUser(new LoginRequest("player1", "password"));
+        var createGameResult = facade.createGame(new CreateGameRequest("game1"));
+        Assertions.assertTrue(createGameResult.gameID() > 0, "created games should report their gameID number");
+    }
+
+    @Test
+    @DisplayName("negativeCreateGame")
+    void negativeCreateGame() throws ResponseException{
+        var authData = facade.registerUser(new RegisterRequest("player1", "password", "p1@email.com"));
+        ResponseException myException = Assertions.assertThrows(ResponseException.class,
+                ()->facade.createGame(new CreateGameRequest("game1")), "authToken needed to create a game");
+    }
+
+
 }

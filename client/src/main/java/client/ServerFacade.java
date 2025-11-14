@@ -114,4 +114,10 @@ public class ServerFacade {
         return handleResponse( response, JoinGameResult.class);
     }
 
+    public ClearResult clearDB(ClearRequest userInput) throws ResponseException {
+        HttpRequest request = buildRequest("DELETE", "/db", userInput);
+        HttpResponse<String> response = sendRequest( request );
+        return handleResponse( response, ClearResult.class);
+    }
+
 }
