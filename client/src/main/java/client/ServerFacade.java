@@ -20,8 +20,9 @@ public class ServerFacade {
     private final String serverUrl;
     private String authToken;
 
-    public ServerFacade(String url){
-        serverUrl = url;
+    public ServerFacade(int port){
+        String urlBase = "http://localhost:";
+        serverUrl = urlBase + String.format("%d", port);
         authToken = null;
     }
 

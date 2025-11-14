@@ -25,8 +25,8 @@ public class ChessClient {
     private String authToken = null;
     private HashMap<Integer, GameData> gameListDisplayed;
 
-    public ChessClient(String serverUrl) {
-        server = new ServerFacade(serverUrl);
+    public ChessClient(int port) {
+        server = new ServerFacade(port);
         currentRepl = new LoggedOutRepl( this );
         gameListDisplayed = new HashMap<Integer, GameData>();
 
