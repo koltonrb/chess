@@ -51,14 +51,4 @@ public class ResponseException extends Exception {
         };
     }
 
-    public Object toHttpStatusCode() {
-        return switch (code) {
-            case BadRequest -> 400;
-            case Unauthorized -> 401;
-            case AlreadyTaken -> 403;
-            case OtherServerError -> 500;
-            case NullStatusServerError -> 999;
-            case ClientError -> 405;
-        };
-    }
 }

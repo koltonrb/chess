@@ -23,7 +23,7 @@ public class DrawChess {
 
     private final ChessBoard board;
     private final ChessGame.TeamColor perspective;
-    private final List<String> COLUMNS;
+    private final List<String> columnsForPerspective;
 
     public static final Map<ChessPiece.PieceType, String> PIECE_TO_STRING = Map.of(
             ChessPiece.PieceType.PAWN,   "P",
@@ -39,9 +39,9 @@ public class DrawChess {
         this.perspective = perspective;
 
         if (this.perspective == ChessGame.TeamColor.WHITE) {
-            this.COLUMNS = WHITE_COLUMNS;
+            this.columnsForPerspective = WHITE_COLUMNS;
         } else {
-            this.COLUMNS = BLACK_COLUMNS;
+            this.columnsForPerspective = BLACK_COLUMNS;
         }
     }
 
@@ -61,7 +61,7 @@ public class DrawChess {
         setBoarder(sb);
         sb.append(EMPTY); // for left hand row labels
         sb.append(EMPTY);
-        for (String col : this.COLUMNS){
+        for (String col : this.columnsForPerspective){
             sb.append(String.format(EMPTY + "%s" + EMPTY, col));
         }
         sb.append(EMPTY);  // for right hand row labels
@@ -97,7 +97,7 @@ public class DrawChess {
             case ChessGame.TeamColor.BLACK -> -1;
         };
 
-        ChessGame.TeamColor next_square_color = ChessGame.TeamColor.WHITE;
+        ChessGame.TeamColor nextSquareColor = ChessGame.TeamColor.WHITE;
 
         for (int squareRow = startRow;
              (rowIncrement > 0) ? (squareRow < endRow) : (squareRow > endRow);
@@ -105,7 +105,7 @@ public class DrawChess {
 
             setBoarder(sb);
             sb.append(String.format("%s ", squareRow + 1));
-            if (next_square_color == ChessGame.TeamColor.WHITE){
+            if (nextSquareColor == ChessGame.TeamColor.WHITE){
                 setWhiteSpace(sb);
             } else {
                 setBlackSpace(sb);
@@ -129,8 +129,8 @@ public class DrawChess {
                 sb.append(EMPTY);
 
 
-                next_square_color = next_square_color == ChessGame.TeamColor.WHITE ? ChessGame.TeamColor.BLACK : ChessGame.TeamColor.WHITE;
-                if (next_square_color == ChessGame.TeamColor.WHITE) {
+                nextSquareColor = nextSquareColor == ChessGame.TeamColor.WHITE ? ChessGame.TeamColor.BLACK : ChessGame.TeamColor.WHITE;
+                if (nextSquareColor == ChessGame.TeamColor.WHITE) {
                     setWhiteSpace(sb);
                 } else {
                     setBlackSpace(sb);
@@ -138,7 +138,7 @@ public class DrawChess {
 
             }
             // when starting a new row, you repeat the color of square that ended the previous row
-            next_square_color = next_square_color == ChessGame.TeamColor.WHITE ? ChessGame.TeamColor.BLACK : ChessGame.TeamColor.WHITE;
+            nextSquareColor = nextSquareColor == ChessGame.TeamColor.WHITE ? ChessGame.TeamColor.BLACK : ChessGame.TeamColor.WHITE;
             sb.append(RESET_TEXT_BOLD_FAINT);
             setBoarder(sb);
             sb.append(String.format(" %s", squareRow + 1));

@@ -88,7 +88,6 @@ public class ChessClient {
             String password = params[1];
 
             LoginRequest request = new LoginRequest(username, password);
-            // todo: should this be wrapped in a try/catch block?
             LoginResult result = null;
             try {
                 result = server.loginUser(request);
@@ -110,10 +109,6 @@ public class ChessClient {
                 }
                 return "try logging in again with a valid username/password combination.";
             }
-//            catch (Throwable ex) {
-//                System.err.println("Logout failed at loginClient:");
-//                ex.printStackTrace();
-//            }
         }
         return "Expected valid username password combination";
     }
@@ -220,19 +215,14 @@ public class ChessClient {
             JoinGameRequest request = new JoinGameRequest(color, this.gameListDisplayed.get(i).gameID());
             JoinGameResult result = server.joinGame( request );
             if (result != null){
-                String board_to_print = "";
-//                try {
-                board_to_print = new DrawChess(this.gameListDisplayed.get(i).game().getBoard(),
+                String boardToPrint = "";
+                boardToPrint = new DrawChess(this.gameListDisplayed.get(i).game().getBoard(),
                         color.equals("WHITE") ? ChessGame.TeamColor.WHITE : ChessGame.TeamColor.BLACK).main();
-//                }
-//                catch (Throwable ex){
-//                    ex.printStackTrace();
-//                }
                 return String.format("%s is now playing in game '%s' as %s\n\n%s",
                         this.username,
                         this.gameListDisplayed.get(i).gameName(),
                         color,
-                        board_to_print);
+                        boardToPrint);
             }
         } catch (ResponseException ex){
             if (ex.code() == ResponseException.Code.AlreadyTaken){
@@ -272,9 +262,4 @@ public class ChessClient {
         return board_to_print;
     }
 
-//    private void assertSignedIn() throws ResponseException{
-//        if (state == State.SIGNEDOUT){
-//            throw new ResponseException(ResponseException.Code.ClientError, "You must sign in");
-//        }
-//    }
 }
