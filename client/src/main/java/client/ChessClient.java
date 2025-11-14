@@ -41,32 +41,49 @@ public class ChessClient {
         System.out.print("\n" + RESET_TEXT_COLOR + ">>> " + SET_TEXT_COLOR_GREEN);
     }
 
-    public String registerClient (String ... params) throws ResponseException {
+    public String registerClient (String ... params) {
         if (state != State.SIGNEDOUT){
-            throw new ResponseException(ResponseException.Code.ClientError, "You are already signed in.  Sign out prior to registering another user.");
+            return "You are already signed in.  Sign out prior to registering another user.";
         }
+        String username;
+        String password;
+        String email;
         if (params.length >= 3) {
-            String username = params[0];
-            String password = params[1];
-            String email = params[2];
-
-            RegisterRequest request = new RegisterRequest(username, password, email);
-            RegisterResult result = server.registerUser( request );
-            if ((result != null) && (result.authToken() != null)){
+            username = params[0];
+            password = params[1];
+            email = params[2];
+        } else {
+            return "Failed to register new user.  Expected format \"register <username> <password> <email>\". All three fields must be provided.";
+        }
+        RegisterRequest request = new RegisterRequest(username, password, email);
+        try {
+            RegisterResult result = server.registerUser(request);
+            if ((result != null) && (result.authToken() != null)) {
                 state = State.SIGNEDIN;
                 this.username = result.username();
                 this.authToken = result.authToken();
-                this.currentRepl = new LoggedInRepl( this );
-                this.server.setAuthToken( this.authToken );
+                this.currentRepl = new LoggedInRepl(this);
+                this.server.setAuthToken(this.authToken);
                 this.getListOfGamesClient();
                 this.start();
+                return String.format("new user %s registered successfully", result.username());
             }
-            return String.format("new user %s registered successfully", result.username());
+        } catch (ResponseException ex){
+            if (ex.code() == ResponseException.Code.AlreadyTaken){
+                return String.format("Failed to register new user because username \"%s\" is already taken.", username);
+            } else if (ex.code() == ResponseException.Code.BadRequest) {
+                return "Failed to register new user.  Expected format \"register <username> <password> <email>\". All three fields must be provided.";
+            } else {
+                return "Failed to register new user.  Expected format \"register <username> <password> <email>\".";
+            }
+        } catch (Throwable ex){
+            return ex.getMessage();
         }
-        throw new ResponseException(ResponseException.Code.ClientError, "Expected username, password, and email address");
+
+        return "Expected command \"register\" <username> <password> <email>";
     }
 
-    public String loginClient( String... params) throws ResponseException {
+    public String loginClient( String... params) {
         if (params.length >= 2) {
             String username = params[0];
             String password = params[1];
@@ -94,18 +111,15 @@ public class ChessClient {
                 }
                 return "try logging in again with a valid username/password combination.";
             }
-            catch (Throwable ex) {
-                // TODO: get rid of the stack trace!
-//            var msg = ex.toString();
-//            System.out.print(msg);
-                System.err.println("Logout failed at loginClient:");
-                ex.printStackTrace();
-            }
+//            catch (Throwable ex) {
+//                System.err.println("Logout failed at loginClient:");
+//                ex.printStackTrace();
+//            }
         }
         return "Expected valid username password combination";
     }
 
-    public String logoutClient( String... params) throws ResponseException {
+    public String logoutClient( String... params) {
         LogoutRequest request = new LogoutRequest();
         // todo: should this be wrapped in a try/catch block?
         LogoutResult result = null;
@@ -113,12 +127,6 @@ public class ChessClient {
             result = server.logoutUser(request);
         } catch (ResponseException ex) {
             return "failed to logout";
-        } catch (Throwable ex) {
-            // todo: get rid of the stack trace here
-//            var msg = ex.toString();
-//            System.out.print(msg);
-            System.err.println("Logout failed at logoutClient:");
-            ex.printStackTrace(); // This prints full stack trace to stderr
         }
         if ((result != null)) {
             state = State.SIGNEDOUT;
@@ -129,12 +137,12 @@ public class ChessClient {
             System.out.println("You have logged out.");
             this.start();
         }
-        return "You have logged out";
+        return "";
     }
 
     public String createGameClient( String ... params) {
         if (params.length < 1) {
-            return "A name must be provided for the game to be created";
+            return "A game name must be provided for the game to be created";
         }
         String gamename = params[0];
         try{
@@ -158,7 +166,7 @@ public class ChessClient {
 
             System.out.printf("%d. %s%n", i, game.gameName());
             System.out.printf("\twhite: %s%n", game.whiteUsername() != null ? game.whiteUsername() : "—");
-            System.out.printf("\tblack: %s%n", game.blackUsername() != null ? game.whiteUsername() : "—");
+            System.out.printf("\tblack: %s%n", game.blackUsername() != null ? game.blackUsername() : "—");
             System.out.println();  // want to separate between game entries
 
         }
@@ -175,8 +183,7 @@ public class ChessClient {
                 }
             }
         } catch (ResponseException ex){
-            // fixme: better message here
-            System.out.println(ex.toString());
+            System.out.println("Error listing games.  Use command \"list\"");
         }
     }
 
@@ -215,12 +222,13 @@ public class ChessClient {
             JoinGameResult result = server.joinGame( request );
             if (result != null){
                 String board_to_print = "";
-                try {
-                    board_to_print = new DrawChess(this.gameListDisplayed.get(i).game().getBoard(),
-                            color.equals("WHITE") ? ChessGame.TeamColor.WHITE : ChessGame.TeamColor.BLACK).main();
-                } catch (Throwable ex){
-                    ex.printStackTrace();
-                }
+//                try {
+                board_to_print = new DrawChess(this.gameListDisplayed.get(i).game().getBoard(),
+                        color.equals("WHITE") ? ChessGame.TeamColor.WHITE : ChessGame.TeamColor.BLACK).main();
+//                }
+//                catch (Throwable ex){
+//                    ex.printStackTrace();
+//                }
                 return String.format("%s is now playing in game '%s' as %s\n\n%s",
                         this.username,
                         this.gameListDisplayed.get(i).gameName(),

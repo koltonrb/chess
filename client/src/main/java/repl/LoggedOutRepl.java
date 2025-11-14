@@ -18,6 +18,7 @@ public class LoggedOutRepl implements Repl{
 
     @Override
     public void run() {
+        System.out.println(SET_TEXT_COLOR_BLUE);
         System.out.println("Welcome to Chess! Sign in or register to begin.");
         System.out.print(help());
 
@@ -29,7 +30,7 @@ public class LoggedOutRepl implements Repl{
 
             try {
                 result = evalLoggedOut(line);
-                System.out.print(SET_TEXT_COLOR_BLUE + result);
+                System.out.print(result);
             } catch (Throwable ex) {
                 var msg = ex.toString();
                 System.out.print(msg);
@@ -43,21 +44,17 @@ public class LoggedOutRepl implements Repl{
     }
 
     public String evalLoggedOut(String input){
-        try{
-            String[] tokens = input.trim()
-                    .toLowerCase()
-                    .split("\\s+");
-            String cmd = (tokens.length > 0) ? tokens[0] : "help";
-            String[] params = Arrays.copyOfRange(tokens, 1, tokens.length);
-            return switch (cmd) {
-                case "register" -> client.registerClient( params );
-                case "login" -> client.loginClient( params );
-                case "quit" -> "quit";
-                default -> help();
-            };
-        } catch (ResponseException ex) {
-            return ex.getMessage();
-        }
+        String[] tokens = input.trim()
+                .toLowerCase()
+                .split("\\s+");
+        String cmd = (tokens.length > 0) ? tokens[0] : "help";
+        String[] params = Arrays.copyOfRange(tokens, 1, tokens.length);
+        return switch (cmd) {
+            case "register" -> client.registerClient(params);
+            case "login" -> client.loginClient(params);
+            case "quit" -> "quit";
+            default -> help();
+        };
     }
 
     public String help() {

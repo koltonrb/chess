@@ -41,24 +41,20 @@ public class LoggedInRepl implements Repl {
     }
 
     public String evalLoggedIn(String input){
-        try{
-            String[] tokens = input.trim()
-                    .toLowerCase()
-                    .split("\\s+");
-            String cmd = (tokens.length > 0) ? tokens[0] : "help";
-            String[] params = Arrays.copyOfRange(tokens, 1, tokens.length);
-            return switch (cmd) {
-                case "logout" -> client.logoutClient( params );
-                case "create" -> client.createGameClient( params );
-                case "list" -> client.listGamesClient();
-                case "play" -> client.joinGameClient( params );
-                case "observe" -> client.observeGameClient( params );
-                default -> help();
-            };
-            } catch (ResponseException ex) {
-                return ex.getMessage();
-        }
-    }
+        String[] tokens = input.trim()
+                .toLowerCase()
+                .split("\\s+");
+        String cmd = (tokens.length > 0) ? tokens[0] : "help";
+        String[] params = Arrays.copyOfRange(tokens, 1, tokens.length);
+        return switch (cmd) {
+            case "logout" -> client.logoutClient( params );
+            case "create" -> client.createGameClient( params );
+            case "list" -> client.listGamesClient();
+            case "play" -> client.joinGameClient( params );
+            case "observe" -> client.observeGameClient( params );
+            default -> help();
+        };
+}
 
     public String help() {
         return """
