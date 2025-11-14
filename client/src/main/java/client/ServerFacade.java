@@ -12,8 +12,6 @@ import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 
-import exception.ResponseException;
-
 
 public class ServerFacade {
     private final HttpClient client = HttpClient.newHttpClient();

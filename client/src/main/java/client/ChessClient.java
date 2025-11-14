@@ -1,7 +1,6 @@
 package client;
 
 import chess.ChessGame;
-import exception.ResponseException;
 import model.GameData;
 import repl.LoggedInRepl;
 import repl.LoggedOutRepl;

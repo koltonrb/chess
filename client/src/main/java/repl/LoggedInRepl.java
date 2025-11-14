@@ -1,7 +1,6 @@
 package repl;
 
 import client.ChessClient;
-import exception.ResponseException;
 
 import java.util.Arrays;
 import java.util.Scanner;
