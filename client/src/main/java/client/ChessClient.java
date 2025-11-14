@@ -239,6 +239,32 @@ public class ChessClient {
         return "failed to join game";
     }
 
+    public String observeGameClient(String... params){
+        if (this.gameListDisplayed.size() == 0){
+            return "There are no games to observe.";
+        }
+        if (params.length < 1) {
+            return "To observe a game, use command 'observe <game number>'";
+        }
+        Integer i = 1;
+        try {
+            i = Integer.parseInt(params[0]);
+        } catch (Exception ex) {
+            return "game number must be an integer";
+        }
+        if (!gameListDisplayed.containsKey(i)){
+            return String.format("game %d does not exist. \nPlease enter a game number between %d and %d",
+                    i,
+                    Collections.min(gameListDisplayed.keySet() ),
+                    Collections.max(gameListDisplayed.keySet() ));
+        }
+
+        String board_to_print = new DrawChess(this.gameListDisplayed.get(i).game().getBoard(),
+                                                ChessGame.TeamColor.WHITE).main();
+
+        return board_to_print;
+    }
+
 //    private void assertSignedIn() throws ResponseException{
 //        if (state == State.SIGNEDOUT){
 //            throw new ResponseException(ResponseException.Code.ClientError, "You must sign in");
