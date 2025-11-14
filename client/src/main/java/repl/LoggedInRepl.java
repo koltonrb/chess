@@ -68,6 +68,7 @@ public class LoggedInRepl implements Repl {
                 -list current chess games and players "list"
                 -join an existing chess game "play <game number> <white/black>"
                 -watch a game "observe"
+                -help with possible commands "help"
                 """;
     }
 }

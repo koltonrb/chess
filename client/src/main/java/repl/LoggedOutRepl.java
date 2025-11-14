@@ -61,12 +61,11 @@ public class LoggedOutRepl implements Repl{
     }
 
     public String help() {
-        // TODO: add better pre-login help messaging
         return """
-                   -Help (h)
-                   -Quit (q)
-                   -Login (login)
-                   -Register (register)
+                   -register as new user "register <username> <password> <email>"
+                   -login to view and play chess "login <username> <password>"
+                   -exit the program "quit"
+                   -help with possible commands "help"
                    """;
         }
 }
