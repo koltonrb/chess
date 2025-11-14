@@ -1,5 +1,6 @@
 package client;
 
+import chess.ChessGame;
 import exception.ResponseException;
 import model.GameData;
 import repl.LoggedInRepl;
@@ -7,6 +8,7 @@ import repl.LoggedOutRepl;
 import repl.Repl;
 import requests.*;
 import results.*;
+import ui.DrawChess;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -211,10 +213,18 @@ public class ChessClient {
             JoinGameRequest request = new JoinGameRequest(color, this.gameListDisplayed.get(i).gameID());
             JoinGameResult result = server.joinGame( request );
             if (result != null){
-                return String.format("%s is now playing in game '%s' as %s",
+                String board_to_print = "";
+                try {
+                    board_to_print = new DrawChess(this.gameListDisplayed.get(i).game().getBoard(),
+                            color.equals("WHITE") ? ChessGame.TeamColor.WHITE : ChessGame.TeamColor.BLACK).main();
+                } catch (Throwable ex){
+                    ex.printStackTrace();
+                }
+                return String.format("%s is now playing in game '%s' as %s\n\n%s",
                         this.username,
                         this.gameListDisplayed.get(i).gameName(),
-                        color);
+                        color,
+                        board_to_print);
             }
         } catch (ResponseException ex){
             if (ex.code() == ResponseException.Code.AlreadyTaken){
