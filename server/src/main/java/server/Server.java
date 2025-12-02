@@ -37,6 +37,7 @@ public class Server {
         this.userService = new UserService(this.dataAccess);
         this.gameService = new GameService(this.dataAccess);
         this.clearService = new ClearService(this.dataAccess);
+        this.webSocketHandler = new WebSocketHandler();
 
         // Register your endpoints and exception handlers here.
         this.httpHandler = Javalin.create(config -> config.staticFiles.add("web"))
@@ -50,7 +51,12 @@ public class Server {
                 .exception(AlreadyTakenException.class, this::alreadyTakenExceptionHandler)
                 .exception(BadRequestException.class, this::badRequestExceptionHandler)
                 .exception(UnauthorizedException.class, this::unauthorizedExceptionHandler)
-                .exception(DataAccessException.class, this::dataAccessExceptionHandler);
+                .exception(DataAccessException.class, this::dataAccessExceptionHandler)
+                .ws("/ws", ws -> {
+                    ws.onConnect(webSocketHandler);
+                    ws.onMessage(webSocketHandler);
+                    ws.onClose(webSocketHandler);
+                });
     }
 
     public int run(int desiredPort) {
