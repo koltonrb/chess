@@ -2,10 +2,13 @@ package server;
 
 import com.google.gson.Gson;
 import dataaccess.DataAccess;
+import exception.DataAccessException;
 import exception.UnauthorizedException;
 import io.javalin.websocket.*;
+import model.GameData;
 import org.eclipse.jetty.websocket.api.Session;
 import websocket.commands.*;
+import websocket.messages.ServerMessage;
 
 import java.io.IOException;
 
@@ -43,10 +46,10 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
 //                case RESIGN -> resign(session, username, (ResignCommand) command);
             }
         } catch (UnauthorizedException ex) {
-            sendMessage(session, "Error: unauthorized");
+            sendMessage(session, new ErrorMessage("Error: unauthorized"));
         } catch (Exception ex) {
             ex.printStackTrace();
-            sendMessage(session, "Error: " + ex.getMessage());
+            sendMessage(session, new ErrorMessage("Error: " + ex.getMessage()));
         }
     }
 
@@ -55,7 +58,8 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         System.out.println("Websocket closed");
     }
 
-    public void sendMessage(Session session, String msg) {
+    public void sendMessage(Session session, ServerMessage serverMessage) {
+        String msg = new Gson().toJson(serverMessage);
         if (session.isOpen()) {
             try{
                 session.getRemote().sendString(msg);
@@ -65,7 +69,13 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         }
     }
 
-    private void connect(Session session, String username, ConnectCommand command) {
+    private void connect(Session session, String username, ConnectCommand command) throws DataAccessException {
+        GameData game = dataAccess.getGames().get(command.getGameID());
+
+        if (game == null){
+            throw new DataAccessException("gameID does not exist");
+        }
+
 
     }
 
