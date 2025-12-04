@@ -4,6 +4,7 @@ import chess.ChessGame;
 import model.GameData;
 import repl.LoggedInRepl;
 import repl.LoggedOutRepl;
+import repl.PlayChessRepl;
 import repl.Repl;
 import requests.*;
 import results.*;
@@ -43,11 +44,11 @@ public class ChessClient {
                 System.out.println("Goodbye");
                 break;
             }
-            if (result.contains("You signed in as")  || result.contains("registered successfully")){
+            if (result.contains("You signed in as")  || result.contains("registered successfully") || result.equals("leave game") || result.equals("resign game")){
                 currentRepl = new LoggedInRepl( this);
             } else if (result.contains("logged out") || result.equals("logout")){
                 currentRepl = new LoggedOutRepl( this );
-            } else if (result.contains("play") || result.contains("observ")){
+            } else if (result.contains("now playing in game") || result.contains("observ")){
                 currentRepl = new PlayChessRepl( this );
             }
         }
@@ -275,6 +276,28 @@ public class ChessClient {
                                                 ChessGame.TeamColor.WHITE).main();
 
         return boardToPrint;
+    }
+
+    public String drawClient(String... params){
+        return "YOU NEED TO IMPLEMENT drawClient STILL";
+    }
+
+    public String highlightLegalMovesClient(String... params){
+        return "YOU NEED TO IMPLEMENT highlightLegalMovesClient STILL";
+    }
+
+    public String leaveClient(String... params){
+        // TODO: this needs to set the chess color player name to null in the db
+        return "leave game";
+    }
+
+    public String moveClient(String... params){
+        return "YOU NEED TO IMPLEMENT moveClient STILL";
+    }
+
+    public String resignClient(String... params){
+        // TODO: this needs to to other chess things to resign the game
+        return "resign game";
     }
 
 }
