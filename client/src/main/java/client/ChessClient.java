@@ -47,6 +47,8 @@ public class ChessClient {
                 currentRepl = new LoggedInRepl( this);
             } else if (result.contains("logged out") || result.equals("logout")){
                 currentRepl = new LoggedOutRepl( this );
+            } else if (result.contains("play") || result.contains("observ")){
+                currentRepl = new PlayChessRepl( this );
             }
         }
     }
