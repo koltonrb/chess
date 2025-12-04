@@ -10,6 +10,7 @@ import org.eclipse.jetty.websocket.api.Session;
 import websocket.commands.*;
 import websocket.messages.ErrorMessage;
 import websocket.messages.LoadGameMessage;
+import websocket.messages.NotificationMessage;
 import websocket.messages.ServerMessage;
 
 import java.io.IOException;
@@ -47,7 +48,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             connections.saveSession(gameID, session);
 
             switch (command.getCommandType()) {
-                case CONNECT -> connect(session, username, (ConnectCommand) command, game);
+                case CONNECT -> connect(session, username, new Gson().fromJson(ctx.message(), ConnectCommand.class), game);
                 //TODO
 //                case MAKE_MOVE -> makeMove(session, username, (MakeMoveCommand) command);
 //                case LEAVE -> leaveGame(session, username, (LeaveGameCommand) command);
@@ -80,11 +81,19 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         }
     }
 
-    private void connect(Session session, String username, ConnectCommand command, GameData game){
+    private void connect(Session session, String username, ConnectCommand command, GameData game) throws IOException{
         // send a load game message back to the root client
         sendMessage(session, new LoadGameMessage(game));
         // broadcast a message to the other clients that root client is connected to the game
-        connections.broadcast(command.getGameID(), session, );
+        // as either an observer or as a player
+        String broadcastMessage = "";
+        if (command.getColor() == null){
+            // then joining as an observer only
+            broadcastMessage += "%s is watching the game".format(username);
+        } else {
+            broadcastMessage += "%s is playing %s".format(username, command.getColor().toString());
+        }
+        connections.broadcast(command.getGameID(), session, new NotificationMessage(broadcastMessage));
     }
 
 }

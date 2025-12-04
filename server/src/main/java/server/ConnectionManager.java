@@ -28,7 +28,7 @@ public class ConnectionManager {
     }
 
     public List<Session> getSessions(Integer gameID){
-        return sessionsInGame.getOrDefault(gameID, CopyOnWriteArrayList.of());
+        return sessionsInGame.getOrDefault(gameID, new CopyOnWriteArrayList<Session>());
     }
 
     public void broadcast(Integer gameID, Session excludeSession, ServerMessage message) throws IOException {
