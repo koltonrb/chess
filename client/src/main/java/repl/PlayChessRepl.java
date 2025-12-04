@@ -14,7 +14,7 @@ public class PlayChessRepl implements Repl{
 
     @Override
     public String run() {
-        System.out.print(help());
+        System.out.print("-use \"help\" for command list");
 
         Scanner scanner = new Scanner(System.in);
 

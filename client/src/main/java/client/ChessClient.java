@@ -48,7 +48,7 @@ public class ChessClient {
                 currentRepl = new LoggedInRepl( this);
             } else if (result.contains("logged out") || result.equals("logout")){
                 currentRepl = new LoggedOutRepl( this );
-            } else if (result.contains("now playing in game") || result.contains("observ")){
+            } else if (result.contains("now playing in game")){
                 currentRepl = new PlayChessRepl( this );
             }
         }
@@ -234,6 +234,7 @@ public class ChessClient {
                 boardToPrint = new DrawChess(this.gameListDisplayed.get(i).game().getBoard(),
                         color.equals("WHITE") ? ChessGame.TeamColor.WHITE : ChessGame.TeamColor.BLACK).main();
                 getListOfGamesClient();  // will reflect that player is now in a game on the list
+                server.
                 return String.format("%s is now playing in game '%s' as %s\n\n%s",
                         this.username,
                         this.gameListDisplayed.get(i).gameName(),

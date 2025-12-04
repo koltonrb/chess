@@ -118,4 +118,6 @@ public class ServerFacade {
         return handleResponse( response, ClearResult.class);
     }
 
+    public Web
+
 }
