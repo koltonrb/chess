@@ -8,6 +8,8 @@ import io.javalin.websocket.*;
 import model.GameData;
 import org.eclipse.jetty.websocket.api.Session;
 import websocket.commands.*;
+import websocket.messages.ErrorMessage;
+import websocket.messages.LoadGameMessage;
 import websocket.messages.ServerMessage;
 
 import java.io.IOException;
@@ -36,10 +38,16 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             UserGameCommand command = new Gson().fromJson(ctx.message(), UserGameCommand.class);
             gameID = command.getGameID();
             String username = dataAccess.getAuth(command.getAuthToken()).username();
+
+            GameData game = dataAccess.getGames().get(gameID);
+            if (game == null){
+                throw new DataAccessException("no game data saved");
+            }
+
             connections.saveSession(gameID, session);
 
             switch (command.getCommandType()) {
-                case CONNECT -> connect(session, username, (ConnectCommand) command );
+                case CONNECT -> connect(session, username, (ConnectCommand) command, game);
                 //TODO
 //                case MAKE_MOVE -> makeMove(session, username, (MakeMoveCommand) command);
 //                case LEAVE -> leaveGame(session, username, (LeaveGameCommand) command);
@@ -47,7 +55,10 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             }
         } catch (UnauthorizedException ex) {
             sendMessage(session, new ErrorMessage("Error: unauthorized"));
-        } catch (Exception ex) {
+        } catch (DataAccessException ex ) {
+            sendMessage(session, new ErrorMessage("Error: gameID could not be retrived"));
+        }
+        catch (Exception ex) {
             ex.printStackTrace();
             sendMessage(session, new ErrorMessage("Error: " + ex.getMessage()));
         }
@@ -69,14 +80,11 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         }
     }
 
-    private void connect(Session session, String username, ConnectCommand command) throws DataAccessException {
-        GameData game = dataAccess.getGames().get(command.getGameID());
-
-        if (game == null){
-            throw new DataAccessException("gameID does not exist");
-        }
-
-
+    private void connect(Session session, String username, ConnectCommand command, GameData game){
+        // send a load game message back to the root client
+        sendMessage(session, new LoadGameMessage(game));
+        // broadcast a message to the other clients that root client is connected to the game
+        connections.broadcast(command.getGameID(), session, );
     }
 
 }

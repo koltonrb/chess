@@ -23,6 +23,7 @@ public class Server {
     private final DataAccess dataAccess;
     private final GameService gameService;
     private final ClearService clearService;
+    private final WebSocketHandler webSocketHandler;
 
     public Server(){
         DataAccess dataAccess1;
@@ -37,7 +38,7 @@ public class Server {
         this.userService = new UserService(this.dataAccess);
         this.gameService = new GameService(this.dataAccess);
         this.clearService = new ClearService(this.dataAccess);
-        this.webSocketHandler = new WebSocketHandler();
+        this.webSocketHandler = new WebSocketHandler(this.dataAccess);
 
         // Register your endpoints and exception handlers here.
         this.httpHandler = Javalin.create(config -> config.staticFiles.add("web"))
