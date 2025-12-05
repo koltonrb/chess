@@ -13,7 +13,8 @@ public class ConnectionManager {
     private ConcurrentHashMap<Integer, CopyOnWriteArrayList<Session>> sessionsInGame = new ConcurrentHashMap<>();
 
     public void saveSession(Integer gameID, Session session){
-        sessionsInGame.computeIfAbsent(gameID, theGameID -> new CopyOnWriteArrayList<>()).add(session);
+        sessionsInGame.computeIfAbsent(gameID, theGameID -> new CopyOnWriteArrayList<>())
+                .addIfAbsent(session);
     }
 
     public void removeSession(Integer gameID, Session session){

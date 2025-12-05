@@ -39,13 +39,13 @@ public class WebSocketFacade extends Endpoint{
                     if (msg.getServerMessageType()== ServerMessage.ServerMessageType.ERROR){
                         msg = new Gson().fromJson(message, ErrorMessage.class);
                         // fixme: abandon this basic print out?
-                        client.notify(msg);
+                        client.notify(msg.toString());
                     } else if (msg.getServerMessageType()== ServerMessage.ServerMessageType.LOAD_GAME) {
                         msg = new Gson().fromJson(message, LoadGameMessage.class);
                         client.notifyDrawBoard((LoadGameMessage) msg);
                     } else if (msg.getServerMessageType() == ServerMessage.ServerMessageType.NOTIFICATION) {
-                        msg = new Gson().fromJson(message, NotificationMessage.class);
-                        client.notify(msg);
+                        NotificationMessage notificationMsg = new Gson().fromJson(message, NotificationMessage.class);
+                        client.notify( notificationMsg.getMsg() );
                         // fixme: abandon this basic print out?
                     }
 

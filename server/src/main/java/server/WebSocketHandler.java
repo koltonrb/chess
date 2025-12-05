@@ -90,9 +90,9 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         String broadcastMessage = "";
         if (command.getColor() == null){
             // then joining as an observer only
-            broadcastMessage += "%s is watching the game".format(username);
+            broadcastMessage += String.format("%s is watching the game", username);
         } else {
-            broadcastMessage += "%s is playing %s".format(username, command.getColor().toString());
+            broadcastMessage += String.format("%s is playing %s", username, command.getColor().toString());
         }
         connections.broadcast(command.getGameID(), session, new NotificationMessage(broadcastMessage));
     }

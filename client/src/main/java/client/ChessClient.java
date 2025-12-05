@@ -342,8 +342,8 @@ public class ChessClient {
         return "resign game";
     }
 
-    public void notify(ServerMessage message){
-        System.out.println(message.toString());
+    public void notify(String message){
+        System.out.println(message);
     }
 
     public void notifyDrawBoard(LoadGameMessage message){
