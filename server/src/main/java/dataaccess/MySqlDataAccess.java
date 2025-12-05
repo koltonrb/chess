@@ -49,6 +49,7 @@ public class MySqlDataAccess implements DataAccess {
                 `blackUsername` varchar(256),
                 `gameName` varchar(256) NOT NULL,
                 `game` varchar(10000) NOT NULL,
+                `can_update` tinyint(1) NOT NULL DEFAULT 1,
             PRIMARY KEY (`game_id`),
             INDEX(`gameName`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
@@ -147,7 +148,8 @@ public class MySqlDataAccess implements DataAccess {
                                 rs.getString("whiteUsername"),
                                 rs.getString("blackUsername"),
                                 rs.getString("gameName"),
-                                new Gson().fromJson(rs.getString("game"), ChessGame.class));
+                                new Gson().fromJson(rs.getString("game"), ChessGame.class),
+                                rs.getBoolean("can_update"));
                         games.put(game.gameID(), game);
                     }
                 }
@@ -242,7 +244,7 @@ public class MySqlDataAccess implements DataAccess {
         try {
             String jsonGame = new Gson().toJson( new ChessGame() );
             int gameID = executeUpdate(statement, null, null, gameName, jsonGame);
-            return new GameData(gameID, null, null, gameName, new ChessGame());
+            return new GameData(gameID, null, null, gameName, new ChessGame(), Boolean.TRUE);
         } catch (SQLException e) {
             throw new DataAccessException("Database error creating new game "+gameName, e);
         }
@@ -261,7 +263,8 @@ public class MySqlDataAccess implements DataAccess {
                                 rs.getString("whiteUsername"),
                                 rs.getString("blackUsername"),
                                 rs.getString("gameName"),
-                                new Gson().fromJson(rs.getString("game"), ChessGame.class)
+                                new Gson().fromJson(rs.getString("game"), ChessGame.class),
+                                rs.getBoolean("can_update")
                         );
                         games.add(game);
                     }
@@ -283,13 +286,39 @@ public class MySqlDataAccess implements DataAccess {
             // even though the ChessGame object really is null and an error should be thrown
             throw new DataAccessException("ChessGame must not be null");
         }
-        var statement = "UPDATE games SET whiteUsername=?, blackUsername=?, gameName=?, game=? WHERE game_id=?";
-        try {
-            int gameID = executeUpdate(statement, game.whiteUsername(),
-                    game.blackUsername(),
-                    game.gameName(),
-                    new Gson().toJson( game.game() ),
-                    game.gameID());
+        // see if we can update the game
+        var statement = "UPDATE games SET whiteUsername=?, blackUsername=?, gameName=?, game=?, can_update=? WHERE game_id=? AND can_update=1";
+//        try {
+//            int gameID = executeUpdate(statement, game.whiteUsername(),
+//                    game.blackUsername(),
+//                    game.gameName(),
+//                    new Gson().toJson( game.game() ),
+//                    game.canUpdate(),
+//                    game.gameID()
+//                    );
+        try (Connection conn = DatabaseManager.getConnection(); PreparedStatement ps = conn.prepareStatement(statement)){
+            ps.setString(1, game.whiteUsername());
+            ps.setString(2, game.blackUsername());
+            ps.setString(3, game.gameName());
+            ps.setString(4, new Gson().toJson( game.game() ));
+            ps.setBoolean(5, game.canUpdate());
+            ps.setInt(6, game.gameID());
+
+            int rowsAffected = ps.executeUpdate();
+
+            if (rowsAffected == 0){
+                // did the update fail because the game can_update flag is false or because we couldn't find the gameID?
+                try (PreparedStatement check = conn.prepareStatement("SELECT can_update FROM games WHERE game_id=?")){
+                    check.setInt(1, game.gameID());
+                    try (ResultSet rs = check.executeQuery()){
+                        if (!rs.next()){
+                            throw new DataAccessException("Game not found: " + game.gameID());
+                        } else {
+                            throw new DataAccessException("Game has concluded");
+                        }
+                    }
+                }
+            }
         } catch (SQLException e){
             throw new DataAccessException("Database error updating a game", e);
         }

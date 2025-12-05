@@ -70,14 +70,16 @@ public class GameService {
                 authData.username(),
                     game.blackUsername(),
                     game.gameName(),
-                    game.game());
+                    game.game(),
+                    game.canUpdate());
 
         } else {
             updatedGame = new GameData(game.gameID(),
                     game.whiteUsername(),
                     authData.username(),
                     game.gameName(),
-                    game.game());
+                    game.game(),
+                    game.canUpdate());
         }
         dataAccess.updateGame( updatedGame );
         return new JoinGameResult();

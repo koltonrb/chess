@@ -57,7 +57,8 @@ public class MemoryDataAccess implements DataAccess {
                 null,
                 null,
                 gameName,
-                new ChessGame());
+                new ChessGame(),
+                Boolean.TRUE);
         this.games.put(this.nextGameId, game);
         this.nextGameId++;
         return game;

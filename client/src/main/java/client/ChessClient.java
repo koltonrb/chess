@@ -9,6 +9,7 @@ import repl.Repl;
 import requests.*;
 import results.*;
 import ui.DrawChess;
+import websocket.commands.ResignCommand;
 import websocket.messages.LoadGameMessage;
 import websocket.messages.NotificationMessage;
 import websocket.messages.ServerMessage;
@@ -30,6 +31,7 @@ public class ChessClient {
     private HashMap<Integer, GameData> gameListDisplayed;
     private ChessGame.TeamColor perspective = ChessGame.TeamColor.WHITE;
     private Integer gameNumber;
+    private Boolean isPlaying = Boolean.FALSE;
 
     public ChessClient(int port) throws ResponseException {
         server = new ServerFacade(port);
@@ -244,6 +246,7 @@ public class ChessClient {
 //                        color.equals("WHITE") ? ChessGame.TeamColor.WHITE : ChessGame.TeamColor.BLACK).main();
                 getListOfGamesClient();  // will reflect that player is now in a game on the list
                 ws.connectToGame(this.authToken, this.gameListDisplayed.get(i).gameID(), color.equals("WHITE") ? ChessGame.TeamColor.WHITE : ChessGame.TeamColor.BLACK);
+                this.isPlaying = Boolean.TRUE;
                 return String.format("%s is now playing in game '%s' as %s",
                         this.username,
                         this.gameListDisplayed.get(i).gameName(),
@@ -291,7 +294,7 @@ public class ChessClient {
         } catch (ResponseException e) {
             throw new RuntimeException(e);
         }
-
+        this.isPlaying = Boolean.FALSE;
         System.out.println( boardToPrint );
         return String.format("now observing game %s", this.gameListDisplayed.get(i).gameName());
     }
@@ -320,13 +323,15 @@ public class ChessClient {
                         null,
                         currentGame.blackUsername(),
                         currentGame.gameName(),
-                        currentGame.game());
+                        currentGame.game(),
+                        currentGame.canUpdate());
             } else {
                 updatedGame = new GameData(currentGame.gameID(),
                         currentGame.whiteUsername(),
                         null,
                         currentGame.gameName(),
-                        currentGame.game());
+                        currentGame.game(),
+                        currentGame.canUpdate());
             }
         } else {
             // no updates necessary to the game data if observer leaves
@@ -343,6 +348,7 @@ public class ChessClient {
         } catch (ResponseException e) {
             return "Failed to broadcast game exit";
         }
+        this.isPlaying = Boolean.FALSE;
         return "leave game";
     }
 
@@ -352,7 +358,45 @@ public class ChessClient {
     }
 
     public String resignClient(String... params){
+        getListOfGamesClient();  // will reflect up to date changes in game list
+
         // TODO: this needs to to other chess things to resign the game
+        // TODO:  need some sort of is-playing flag (observers cannot resign)
+        if (! this.isPlaying ){
+            return "you are not playing a game and so cannot resign";
+        }
+        // user should receive a prompt to confirm if they really want to resign the game or not
+        String result = "";
+        Scanner scanner = new Scanner(System.in);
+        while (!(result.toLowerCase().equals("y") || result.toLowerCase().equals("n"))){
+            System.out.println(SET_TEXT_COLOR_RED + "Do you really want to resign the game?  [Y/N]");
+            String line = scanner.nextLine();
+            String[] tokens = line.trim().toLowerCase().split("\\s+");
+            if (tokens[0].equals("y")){
+                // todo other game handling here.  mark the game so that no more moves can be made.
+                GameData currentGame = this.gameListDisplayed.get(this.gameNumber);
+                GameData updatedGame = new GameData(currentGame.gameID(),
+                        currentGame.whiteUsername(),
+                        currentGame.blackUsername(),
+                        currentGame.gameName(),
+                        currentGame.game(),
+                        Boolean.FALSE);
+                UpdateGameRequest request = new UpdateGameRequest(updatedGame);
+                UpdateGameResult resignResult = null;
+                try {
+                    resignResult = server.updateGame(request);
+                } catch (ResponseException e) {
+                    return "failed to resign";
+                }
+                if (resignResult != null){
+                    getListOfGamesClient();
+                return "resign game";
+                }
+                // isPlaying should only update in leave game since resign allows all to stay in game until they leave
+            } else if (tokens[0].equals("n")) {
+                return "continuing play";
+            }
+        }
         return "resign game";
     }
 
