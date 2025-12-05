@@ -282,6 +282,7 @@ public class ChessClient {
                     Collections.max(gameListDisplayed.keySet() ));
         }
         this.perspective = null;
+        this.gameNumber = i;
         String boardToPrint = new DrawChess(this.gameListDisplayed.get(i).game().getBoard(),
                                                 ChessGame.TeamColor.WHITE).main();
 
@@ -289,10 +290,15 @@ public class ChessClient {
     }
 
     public String drawClient(String... params){
-        return "YOU NEED TO IMPLEMENT drawClient STILL";
+        getListOfGamesClient();  // will reflect up to date changes in game list
+        String boardToPrint = "";
+        boardToPrint = new DrawChess(this.gameListDisplayed.get(this.gameNumber).game().getBoard(),
+                        this.perspective != null ? this.perspective : ChessGame.TeamColor.WHITE).main();
+        return boardToPrint;
     }
 
     public String highlightLegalMovesClient(String... params){
+        // todo
         return "YOU NEED TO IMPLEMENT highlightLegalMovesClient STILL";
     }
 
@@ -334,6 +340,7 @@ public class ChessClient {
     }
 
     public String moveClient(String... params){
+        //todo
         return "YOU NEED TO IMPLEMENT moveClient STILL";
     }
 
@@ -348,10 +355,6 @@ public class ChessClient {
 
     public void notifyDrawBoard(LoadGameMessage message){
         System.out.println( "\n\n" + new DrawChess( message.getGameData().game().getBoard(), this.perspective).main() );
-    }
-
-    public void notifyNotification(NotificationMessage message){
-
     }
 
 }
