@@ -63,7 +63,7 @@ public class WebSocketFacade extends Endpoint{
     public void connectToGame(String AuthToken, Integer gameID, ChessGame.TeamColor color) throws ResponseException {
         try{
             ConnectCommand action = new ConnectCommand(AuthToken, gameID, color);
-            this.session.getBasicRemote().sendText(new Gson().toJson(action));  //TODO: test if this is where the message gets sent from
+            this.session.getBasicRemote().sendText(new Gson().toJson(action));
         } catch (IOException ex) {
             throw new ResponseException(ResponseException.Code.OtherServerError, ex.getMessage());
         }

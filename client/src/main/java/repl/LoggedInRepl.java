@@ -21,7 +21,9 @@ public class LoggedInRepl implements Repl {
         Scanner scanner = new Scanner(System.in);
         var result = "";
         // todo: update this while condition to swap repls when observing a game
-        while (!(result.contains("You have logged out") || result.contains("now playing in game")) ){
+        while (!(result.contains("You have logged out")
+                || result.contains("now playing in game")
+                || result.contains("now observing game")) ){
             printPrompt();
             String line = scanner.nextLine();
 

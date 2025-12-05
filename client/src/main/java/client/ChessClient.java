@@ -54,7 +54,7 @@ public class ChessClient {
                 currentRepl = new LoggedInRepl( this);
             } else if (result.contains("logged out") || result.equals("logout")){
                 currentRepl = new LoggedOutRepl( this );
-            } else if (result.contains("now playing in game")){
+            } else if (result.contains("now playing in game") || result.contains("now observing game")){
                 currentRepl = new PlayChessRepl( this );
             }
         }
@@ -286,7 +286,14 @@ public class ChessClient {
         String boardToPrint = new DrawChess(this.gameListDisplayed.get(i).game().getBoard(),
                                                 ChessGame.TeamColor.WHITE).main();
 
-        return boardToPrint;
+        try{
+            ws.connectToGame(this.authToken, this.gameListDisplayed.get(i).gameID(), null);
+        } catch (ResponseException e) {
+            throw new RuntimeException(e);
+        }
+
+        System.out.println( boardToPrint );
+        return String.format("now observing game %s", this.gameListDisplayed.get(i).gameName());
     }
 
     public String drawClient(String... params){
