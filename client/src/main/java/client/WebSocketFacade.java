@@ -37,12 +37,17 @@ public class WebSocketFacade extends Endpoint{
                     ServerMessage msg = new Gson().fromJson(message, ServerMessage.class);
                     if (msg.getServerMessageType()== ServerMessage.ServerMessageType.ERROR){
                         msg = new Gson().fromJson(message, ErrorMessage.class);
+                        // fixme: abandon this basic print out?
+                        client.notify(msg);
                     } else if (msg.getServerMessageType()== ServerMessage.ServerMessageType.LOAD_GAME) {
                         msg = new Gson().fromJson(message, LoadGameMessage.class);
+                        client.notifyDrawBoard((LoadGameMessage) msg);
                     } else if (msg.getServerMessageType() == ServerMessage.ServerMessageType.NOTIFICATION) {
                         msg = new Gson().fromJson(message, NotificationMessage.class);
+                        client.notify(msg);
+                        // fixme: abandon this basic print out?
                     }
-                    client.notify(msg);
+
                 }
             });
         } catch (Throwable ex) {

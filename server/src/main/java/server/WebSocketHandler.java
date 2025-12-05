@@ -26,7 +26,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
 
     @Override
     public void handleConnect(WsConnectContext ctx) {
-        System.out.println("Websocket connected");
+//        System.out.println("Websocket connected");
         ctx.enableAutomaticPings();
     }
 
@@ -67,7 +67,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
 
     @Override
     public void handleClose(WsCloseContext ctx) {
-        System.out.println("Websocket closed");
+//        System.out.println("Websocket closed");
     }
 
     public void sendMessage(Session session, ServerMessage serverMessage) {

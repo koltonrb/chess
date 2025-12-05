@@ -9,6 +9,7 @@ import repl.Repl;
 import requests.*;
 import results.*;
 import ui.DrawChess;
+import websocket.messages.LoadGameMessage;
 import websocket.messages.ServerMessage;
 
 import java.util.Collections;
@@ -26,6 +27,7 @@ public class ChessClient {
     private String username = null;
     private String authToken = null;
     private HashMap<Integer, GameData> gameListDisplayed;
+    private ChessGame.TeamColor perspective = ChessGame.TeamColor.WHITE;
 
     public ChessClient(int port) throws ResponseException {
         server = new ServerFacade(port);
@@ -229,20 +231,21 @@ public class ChessClient {
         if ((!color.equals("WHITE")) && (!color.equals("BLACK"))){
             return "team color must be either 'white' or 'black' only.";
         }
+        this.perspective = color.equals("WHITE") ? ChessGame.TeamColor.WHITE : ChessGame.TeamColor.BLACK;
         try{
             JoinGameRequest request = new JoinGameRequest(color, this.gameListDisplayed.get(i).gameID());
             JoinGameResult result = server.joinGame( request );
             if (result != null){
-                String boardToPrint = "";
-                boardToPrint = new DrawChess(this.gameListDisplayed.get(i).game().getBoard(),
-                        color.equals("WHITE") ? ChessGame.TeamColor.WHITE : ChessGame.TeamColor.BLACK).main();
+//                String boardToPrint = "";
+//                boardToPrint = new DrawChess(this.gameListDisplayed.get(i).game().getBoard(),
+//                        color.equals("WHITE") ? ChessGame.TeamColor.WHITE : ChessGame.TeamColor.BLACK).main();
                 getListOfGamesClient();  // will reflect that player is now in a game on the list
                 ws.connectToGame(this.authToken, this.gameListDisplayed.get(i).gameID(), color.equals("WHITE") ? ChessGame.TeamColor.WHITE : ChessGame.TeamColor.BLACK);
-                return String.format("%s is now playing in game '%s' as %s\n\n%s",
+                return String.format("%s is now playing in game '%s' as %s",
                         this.username,
                         this.gameListDisplayed.get(i).gameName(),
-                        color,
-                        boardToPrint);
+                        color
+                        );
             }
         } catch (ResponseException ex){
             if (ex.code() == ResponseException.Code.AlreadyTaken){
@@ -275,7 +278,7 @@ public class ChessClient {
                     Collections.min(gameListDisplayed.keySet() ),
                     Collections.max(gameListDisplayed.keySet() ));
         }
-
+        // may need to update this.perspective here?
         String boardToPrint = new DrawChess(this.gameListDisplayed.get(i).game().getBoard(),
                                                 ChessGame.TeamColor.WHITE).main();
 
@@ -306,6 +309,10 @@ public class ChessClient {
 
     public void notify(ServerMessage message){
         System.out.println(message.toString());
+    }
+
+    public void notifyDrawBoard(LoadGameMessage message){
+        System.out.println( "\n\n" + new DrawChess( message.getGameData().game().getBoard(), this.perspective).main() );
     }
 
 }
