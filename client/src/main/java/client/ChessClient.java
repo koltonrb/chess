@@ -32,6 +32,8 @@ public class ChessClient {
     private ChessGame.TeamColor perspective = ChessGame.TeamColor.WHITE;
     private Integer gameNumber;
     private Boolean isPlaying = Boolean.FALSE;
+    private Boolean hasResigned = Boolean.FALSE;
+    private GameData currentGame;
 
     public ChessClient(int port) throws ResponseException {
         server = new ServerFacade(port);
@@ -195,8 +197,12 @@ public class ChessClient {
             ListGamesRequest request = new ListGamesRequest();
             ListGamesResult result = server.listGames( request );
             if ((result != null) && (result.games() != null)){
-                for (int i = 0; i < result.games().size(); i++) {
-                    this.gameListDisplayed.put(i + 1, result.games().get(i));
+                int gameNumber = 1; //to display NOT gameID numbers
+                for (GameData game: result.games()){
+                    if (game.canUpdate()){
+                        this.gameListDisplayed.put(gameNumber, game);
+                        gameNumber++;
+                    }
                 }
             }
         } catch (ResponseException ex){
@@ -247,6 +253,8 @@ public class ChessClient {
                 getListOfGamesClient();  // will reflect that player is now in a game on the list
                 ws.connectToGame(this.authToken, this.gameListDisplayed.get(i).gameID(), color.equals("WHITE") ? ChessGame.TeamColor.WHITE : ChessGame.TeamColor.BLACK);
                 this.isPlaying = Boolean.TRUE;
+                this.currentGame = this.gameListDisplayed.get(i);
+                this.hasResigned = Boolean.FALSE;
                 return String.format("%s is now playing in game '%s' as %s",
                         this.username,
                         this.gameListDisplayed.get(i).gameName(),
@@ -295,6 +303,7 @@ public class ChessClient {
             throw new RuntimeException(e);
         }
         this.isPlaying = Boolean.FALSE;
+        this.currentGame = this.gameListDisplayed.get(i);
         System.out.println( boardToPrint );
         return String.format("now observing game %s", this.gameListDisplayed.get(i).gameName());
     }
@@ -314,7 +323,7 @@ public class ChessClient {
 
     public String leaveClient(String... params){
         getListOfGamesClient();  // will reflect up to date changes in game list
-        GameData currentGame = gameListDisplayed.get(this.gameNumber);
+//        GameData currentGame = gameListDisplayed.get(this.gameNumber);
         GameData updatedGame;
         if (this.perspective != null) {
             // IE if you were playing the game as BLACK or WHITE
@@ -349,6 +358,7 @@ public class ChessClient {
             return "Failed to broadcast game exit";
         }
         this.isPlaying = Boolean.FALSE;
+        this.currentGame = null;
         return "leave game";
     }
 
@@ -364,6 +374,8 @@ public class ChessClient {
         // TODO:  need some sort of is-playing flag (observers cannot resign)
         if (! this.isPlaying ){
             return "you are not playing a game and so cannot resign";
+        } else if (this.hasResigned) {
+            return "you already resigned";
         }
         // user should receive a prompt to confirm if they really want to resign the game or not
         String result = "";
@@ -395,9 +407,9 @@ public class ChessClient {
                         return "Failed to announce resignation";
                     }
                     getListOfGamesClient();
+                this.hasResigned = Boolean.TRUE;  // updated to make it so we won't resign twice
                 return "resign game";
                 }
-                // isPlaying should only update in leave game since resign allows all to stay in game until they leave
             } else if (tokens[0].equals("n")) {
                 return "continuing play";
             }
