@@ -7,6 +7,7 @@ import com.google.gson.Gson;
 import jakarta.websocket.*;
 import websocket.commands.ConnectCommand;
 import websocket.commands.LeaveGameCommand;
+import websocket.commands.ResignCommand;
 import websocket.messages.ErrorMessage;
 import websocket.messages.LoadGameMessage;
 import websocket.messages.NotificationMessage;
@@ -76,6 +77,15 @@ public class WebSocketFacade extends Endpoint{
             LeaveGameCommand action = new LeaveGameCommand(authToken, gameID, color);
             this.session.getBasicRemote().sendText(new Gson().toJson(action));
         } catch (IOException ex){
+            throw new ResponseException(ResponseException.Code.OtherServerError, ex.getMessage());
+        }
+    }
+
+    public void resignGame(String authToken, Integer gameID, ChessGame.TeamColor color) throws ResponseException {
+        try{
+            ResignCommand action = new ResignCommand(authToken, gameID, color);
+            this.session.getBasicRemote().sendText(new Gson().toJson(action));
+        } catch (IOException ex) {
             throw new ResponseException(ResponseException.Code.OtherServerError, ex.getMessage());
         }
     }

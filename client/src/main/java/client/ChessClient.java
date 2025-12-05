@@ -333,15 +333,15 @@ public class ChessClient {
                         currentGame.game(),
                         currentGame.canUpdate());
             }
+            UpdateGameRequest request = new UpdateGameRequest( updatedGame );
+            try {
+                UpdateGameResult result = server.updateGame(request);
+            } catch (ResponseException ex) {
+                return "Failed to exit the game";
+            }
         } else {
             // no updates necessary to the game data if observer leaves
             updatedGame = currentGame;
-        }
-        UpdateGameRequest request = new UpdateGameRequest( updatedGame );
-        try {
-            UpdateGameResult result = server.updateGame(request);
-        } catch (ResponseException ex) {
-            return "Failed to exit the game";
         }
         try {
             ws.leaveGame(this.authToken, updatedGame.gameID(), this.perspective);
@@ -381,14 +381,19 @@ public class ChessClient {
                         currentGame.gameName(),
                         currentGame.game(),
                         Boolean.FALSE);
-                UpdateGameRequest request = new UpdateGameRequest(updatedGame);
-                UpdateGameResult resignResult = null;
+                ConcludeGameRequest request = new ConcludeGameRequest(updatedGame.gameID());
+                ConcludeGameResult resignResult = null;
                 try {
-                    resignResult = server.updateGame(request);
+                    resignResult = server.concludeGame(request);
                 } catch (ResponseException e) {
                     return "failed to resign";
                 }
                 if (resignResult != null){
+                    try {
+                        ws.resignGame(this.authToken, updatedGame.gameID(), this.perspective);
+                    } catch (ResponseException e) {
+                        return "Failed to announce resignation";
+                    }
                     getListOfGamesClient();
                 return "resign game";
                 }

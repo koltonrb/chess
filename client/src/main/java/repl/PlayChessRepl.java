@@ -19,7 +19,7 @@ public class PlayChessRepl implements Repl{
         Scanner scanner = new Scanner(System.in);
 
         var result = "";
-        while (!(result.equals("leave game") || result.equals("resign game")) ){
+        while (!(result.equals("leave game")) ){
             printPrompt();
             String line = scanner.nextLine();
 

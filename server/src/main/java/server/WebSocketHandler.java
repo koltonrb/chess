@@ -53,7 +53,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                 //TODO
 //                case MAKE_MOVE -> makeMove(session, username, (MakeMoveCommand) command);
                 case LEAVE -> leaveGame(session, username, new Gson().fromJson(ctx.message(), LeaveGameCommand.class));
-//                case RESIGN -> resign(session, username, (ResignCommand) command);
+                case RESIGN -> resignGame(session, username, new Gson().fromJson(ctx.message(), ResignCommand.class));
             }
         } catch (UnauthorizedException ex) {
             sendMessage(session, new ErrorMessage("Error: unauthorized"));
@@ -110,6 +110,17 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         }
         connections.broadcast(command.getGameID(), session, new NotificationMessage(broadcastMessage));
         connections.removeSession(command.getGameID(), session);
+    }
+
+    private void resignGame(Session session, String username, ResignCommand command) throws IOException{
+        // broadcast a message to the other clients that the root client resigned the game
+        String broadcastMessage = "";
+        broadcastMessage += username;
+        broadcastMessage += " resigned the game and is no longer playing as ";
+        broadcastMessage += String.format("%s", command.getColor());
+        broadcastMessage += "\nthe game is over";
+        connections.broadcast(command.getGameID(), session, new NotificationMessage(broadcastMessage));
+        // session should stay active until users each leave
     }
 
 }

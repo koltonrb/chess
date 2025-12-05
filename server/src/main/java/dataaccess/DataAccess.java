@@ -5,6 +5,7 @@ import model.AuthData;
 import requests.ClearRequest;
 import model.GameData;
 import model.UserData;
+import requests.ConcludeGameRequest;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -21,5 +22,6 @@ public interface DataAccess {
     GameData createGame(String gameName) throws DataAccessException;
     ArrayList<GameData> listGames() throws DataAccessException;
     void updateGame(GameData game) throws DataAccessException;
+    void concludeGame(Integer gameID) throws DataAccessException;;
     void clear(ClearRequest request) throws DataAccessException;
 }

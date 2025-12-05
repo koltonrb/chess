@@ -4,16 +4,10 @@ import exception.AlreadyTakenException;
 import exception.BadRequestException;
 import exception.DataAccessException;
 import exception.UnauthorizedException;
-import requests.CreateGameRequest;
-import requests.JoinGameRequest;
-import requests.ListGamesRequest;
-import requests.UpdateGameRequest;
-import results.CreateGameResult;
-import results.JoinGameResult;
-import results.ListGamesResult;
+import requests.*;
+import results.*;
 import dataaccess.*;
 import model.*;
-import results.UpdateGameResult;
 
 import java.util.ArrayList;
 
@@ -97,5 +91,17 @@ public class GameService {
 
         dataAccess.updateGame( gameData );
         return new UpdateGameResult();
+    }
+
+    public ConcludeGameResult concludeGame(ConcludeGameRequest request, String authToken) throws DataAccessException{
+        Integer gameID = request.gameID();
+
+        AuthData authData = dataAccess.getAuth(authToken);
+        if (authData == null){
+            throw new UnauthorizedException("unauthorized");
+        }
+        dataAccess.concludeGame( gameID );
+        return new ConcludeGameResult();
+
     }
 }

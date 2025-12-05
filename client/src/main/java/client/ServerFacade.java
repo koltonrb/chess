@@ -128,4 +128,10 @@ public class ServerFacade {
         return handleResponse( response, UpdateGameResult.class);
     }
 
+    public ConcludeGameResult concludeGame(ConcludeGameRequest userInput) throws ResponseException{
+        HttpRequest request = buildRequest("PATCH", "/gameover", userInput);
+        HttpResponse<String> response = sendRequest( request );
+        return handleResponse( response, ConcludeGameResult.class);
+    }
+
 }

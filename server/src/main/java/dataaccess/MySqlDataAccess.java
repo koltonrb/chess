@@ -278,6 +278,7 @@ public class MySqlDataAccess implements DataAccess {
 
     @Override
     public void updateGame(GameData game) throws DataAccessException {
+        // will not update the can_update field
         if (game.gameID() <= 0) {
             throw new DataAccessException("gameID must be positive int");
         }
@@ -286,41 +287,27 @@ public class MySqlDataAccess implements DataAccess {
             // even though the ChessGame object really is null and an error should be thrown
             throw new DataAccessException("ChessGame must not be null");
         }
-        // see if we can update the game
-        var statement = "UPDATE games SET whiteUsername=?, blackUsername=?, gameName=?, game=?, can_update=? WHERE game_id=? AND can_update=1";
-//        try {
-//            int gameID = executeUpdate(statement, game.whiteUsername(),
-//                    game.blackUsername(),
-//                    game.gameName(),
-//                    new Gson().toJson( game.game() ),
-//                    game.canUpdate(),
-//                    game.gameID()
-//                    );
-        try (Connection conn = DatabaseManager.getConnection(); PreparedStatement ps = conn.prepareStatement(statement)){
-            ps.setString(1, game.whiteUsername());
-            ps.setString(2, game.blackUsername());
-            ps.setString(3, game.gameName());
-            ps.setString(4, new Gson().toJson( game.game() ));
-            ps.setBoolean(5, game.canUpdate());
-            ps.setInt(6, game.gameID());
-
-            int rowsAffected = ps.executeUpdate();
-
-            if (rowsAffected == 0){
-                // did the update fail because the game can_update flag is false or because we couldn't find the gameID?
-                try (PreparedStatement check = conn.prepareStatement("SELECT can_update FROM games WHERE game_id=?")){
-                    check.setInt(1, game.gameID());
-                    try (ResultSet rs = check.executeQuery()){
-                        if (!rs.next()){
-                            throw new DataAccessException("Game not found: " + game.gameID());
-                        } else {
-                            throw new DataAccessException("Game has concluded");
-                        }
-                    }
-                }
-            }
+        var statement = "UPDATE games SET whiteUsername=?, blackUsername=?, gameName=?, game=? WHERE game_id=?";
+        try {
+            int gameID = executeUpdate(statement, game.whiteUsername(),
+                    game.blackUsername(),
+                    game.gameName(),
+                    new Gson().toJson( game.game() ),
+                    game.gameID(),
+                    game.canUpdate());
         } catch (SQLException e){
             throw new DataAccessException("Database error updating a game", e);
+        }
+    }
+
+    @Override
+    public void concludeGame(Integer gameID) throws DataAccessException {
+        var statement = "UPDATE games SET can_update=0 WHERE game_id=?";
+        try {
+            int gameID2 = executeUpdate(statement,
+                    gameID);
+        } catch (SQLException e){
+            throw new DataAccessException("Database error concluding a game", e);
         }
     }
 
