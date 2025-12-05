@@ -6,6 +6,7 @@ import com.google.gson.Gson;
 
 import jakarta.websocket.*;
 import websocket.commands.ConnectCommand;
+import websocket.commands.LeaveGameCommand;
 import websocket.messages.ErrorMessage;
 import websocket.messages.LoadGameMessage;
 import websocket.messages.NotificationMessage;
@@ -62,12 +63,21 @@ public class WebSocketFacade extends Endpoint{
     public void connectToGame(String AuthToken, Integer gameID, ChessGame.TeamColor color) throws ResponseException {
         try{
             ConnectCommand action = new ConnectCommand(AuthToken, gameID, color);
-            this.session.getBasicRemote().sendText(new Gson().toJson(action));
+            this.session.getBasicRemote().sendText(new Gson().toJson(action));  //TODO: test if this is where the message gets sent from
         } catch (IOException ex) {
             throw new ResponseException(ResponseException.Code.OtherServerError, ex.getMessage());
         }
     }
 
     //TODO add other UserGameCommand options here
+
+    public void leaveGame(String authToken, Integer gameID, ChessGame.TeamColor color) throws ResponseException {
+        try{
+            LeaveGameCommand action = new LeaveGameCommand(authToken, gameID, color);
+            this.session.getBasicRemote().sendText(new Gson().toJson(action));
+        } catch (IOException ex){
+            throw new ResponseException(ResponseException.Code.OtherServerError, ex.getMessage());
+        }
+    }
 
 }

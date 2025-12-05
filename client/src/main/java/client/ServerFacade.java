@@ -122,4 +122,10 @@ public class ServerFacade {
         return handleResponse( response, ClearResult.class);
     }
 
+    public UpdateGameResult updateGame(UpdateGameRequest userInput ) throws ResponseException {
+        HttpRequest request = buildRequest("PATCH", "/game", userInput);
+        HttpResponse<String> response = sendRequest( request );
+        return handleResponse( response, UpdateGameResult.class);
+    }
+
 }

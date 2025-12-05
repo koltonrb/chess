@@ -7,11 +7,13 @@ import exception.UnauthorizedException;
 import requests.CreateGameRequest;
 import requests.JoinGameRequest;
 import requests.ListGamesRequest;
+import requests.UpdateGameRequest;
 import results.CreateGameResult;
 import results.JoinGameResult;
 import results.ListGamesResult;
 import dataaccess.*;
 import model.*;
+import results.UpdateGameResult;
 
 import java.util.ArrayList;
 
@@ -81,5 +83,17 @@ public class GameService {
         return new JoinGameResult();
 
 
+    }
+
+    public UpdateGameResult updateGame(UpdateGameRequest request, String authToken) throws DataAccessException {
+        GameData gameData = request.gameData();
+
+        AuthData authData = dataAccess.getAuth(authToken);
+        if (authData == null){
+            throw new UnauthorizedException("unauthorized");
+        }
+
+        dataAccess.updateGame( gameData );
+        return new UpdateGameResult();
     }
 }

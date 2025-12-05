@@ -1,5 +1,6 @@
 package server;
 
+import chess.ChessGame;
 import com.google.gson.Gson;
 import dataaccess.DataAccess;
 import exception.DataAccessException;
@@ -51,7 +52,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                 case CONNECT -> connect(session, username, new Gson().fromJson(ctx.message(), ConnectCommand.class), game);
                 //TODO
 //                case MAKE_MOVE -> makeMove(session, username, (MakeMoveCommand) command);
-//                case LEAVE -> leaveGame(session, username, (LeaveGameCommand) command);
+                case LEAVE -> leaveGame(session, username, new Gson().fromJson(ctx.message(), LeaveGameCommand.class));
 //                case RESIGN -> resign(session, username, (ResignCommand) command);
             }
         } catch (UnauthorizedException ex) {
@@ -94,6 +95,21 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             broadcastMessage += "%s is playing %s".format(username, command.getColor().toString());
         }
         connections.broadcast(command.getGameID(), session, new NotificationMessage(broadcastMessage));
+    }
+
+    private void leaveGame(Session session, String username, LeaveGameCommand command) throws IOException {
+        // broadcast a message to the other clients that the root client left the game
+        String broadcastMessage = "";
+        broadcastMessage += username;
+        if (command.getColor() == null){
+            // then an observer leaves the game
+            broadcastMessage += " left the game and is no longer watching";
+        } else {
+            broadcastMessage += " left the game and is no longer playing ";
+            broadcastMessage += " %s".format(command.getColor().toString());
+        }
+        connections.broadcast(command.getGameID(), session, new NotificationMessage(broadcastMessage));
+        connections.removeSession(command.getGameID(), session);
     }
 
 }

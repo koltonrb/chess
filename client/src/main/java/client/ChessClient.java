@@ -10,6 +10,7 @@ import requests.*;
 import results.*;
 import ui.DrawChess;
 import websocket.messages.LoadGameMessage;
+import websocket.messages.NotificationMessage;
 import websocket.messages.ServerMessage;
 
 import java.util.Collections;
@@ -28,6 +29,7 @@ public class ChessClient {
     private String authToken = null;
     private HashMap<Integer, GameData> gameListDisplayed;
     private ChessGame.TeamColor perspective = ChessGame.TeamColor.WHITE;
+    private Integer gameNumber;
 
     public ChessClient(int port) throws ResponseException {
         server = new ServerFacade(port);
@@ -227,6 +229,7 @@ public class ChessClient {
                     Collections.min(gameListDisplayed.keySet() ),
                     Collections.max(gameListDisplayed.keySet() ));
         }
+        this.gameNumber = i;
         String color = params[1].toUpperCase();
         if ((!color.equals("WHITE")) && (!color.equals("BLACK"))){
             return "team color must be either 'white' or 'black' only.";
@@ -278,7 +281,7 @@ public class ChessClient {
                     Collections.min(gameListDisplayed.keySet() ),
                     Collections.max(gameListDisplayed.keySet() ));
         }
-        // may need to update this.perspective here?
+        this.perspective = null;
         String boardToPrint = new DrawChess(this.gameListDisplayed.get(i).game().getBoard(),
                                                 ChessGame.TeamColor.WHITE).main();
 
@@ -294,7 +297,39 @@ public class ChessClient {
     }
 
     public String leaveClient(String... params){
-        // TODO: this needs to set the chess color player name to null in the db
+        getListOfGamesClient();  // will reflect up to date changes in game list
+        GameData currentGame = gameListDisplayed.get(this.gameNumber);
+        GameData updatedGame;
+        if (this.perspective != null) {
+            // IE if you were playing the game as BLACK or WHITE
+            if (this.perspective == ChessGame.TeamColor.WHITE){
+                updatedGame = new GameData(currentGame.gameID(),
+                        null,
+                        currentGame.blackUsername(),
+                        currentGame.gameName(),
+                        currentGame.game());
+            } else {
+                updatedGame = new GameData(currentGame.gameID(),
+                        currentGame.whiteUsername(),
+                        null,
+                        currentGame.gameName(),
+                        currentGame.game());
+            }
+        } else {
+            // no updates necessary to the game data if observer leaves
+            updatedGame = currentGame;
+        }
+        UpdateGameRequest request = new UpdateGameRequest( updatedGame );
+        try {
+            UpdateGameResult result = server.updateGame(request);
+        } catch (ResponseException ex) {
+            return "Failed to exit the game";
+        }
+        try {
+            ws.leaveGame(this.authToken, updatedGame.gameID(), this.perspective);
+        } catch (ResponseException e) {
+            return "Failed to broadcast game exit";
+        }
         return "leave game";
     }
 
@@ -313,6 +348,10 @@ public class ChessClient {
 
     public void notifyDrawBoard(LoadGameMessage message){
         System.out.println( "\n\n" + new DrawChess( message.getGameData().game().getBoard(), this.perspective).main() );
+    }
+
+    public void notifyNotification(NotificationMessage message){
+
     }
 
 }

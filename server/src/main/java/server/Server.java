@@ -14,6 +14,7 @@ import service.ClearService;
 import service.GameService;
 import service.UserService;
 
+import javax.xml.crypto.Data;
 import java.util.HashMap;
 
 public class Server {
@@ -49,6 +50,7 @@ public class Server {
                 .post("/game", this::createGame)
                 .get("/game", this::listGames)
                 .put("/game", this::joinGame)
+                .patch("/game", this::updateGame)
                 .exception(AlreadyTakenException.class, this::alreadyTakenExceptionHandler)
                 .exception(BadRequestException.class, this::badRequestExceptionHandler)
                 .exception(UnauthorizedException.class, this::unauthorizedExceptionHandler)
@@ -145,6 +147,13 @@ public class Server {
         ClearRequest request = new Gson().fromJson(ctx.body(), ClearRequest.class);
         ClearResult result = clearService.clear(request);
         ctx.status(200).json(new Gson().toJson( result ));
+    }
+
+    private void updateGame(Context ctx) throws DataAccessException {
+        String authToken = ctx.header("authorization");
+        UpdateGameRequest request = new Gson().fromJson(ctx.body(), UpdateGameRequest.class);
+        UpdateGameResult result = gameService.updateGame( request, authToken );
+        ctx.status(200).json(new Gson().toJson( result));
     }
 
 }
