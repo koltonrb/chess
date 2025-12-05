@@ -9,6 +9,7 @@ import repl.Repl;
 import requests.*;
 import results.*;
 import ui.DrawChess;
+import websocket.messages.ServerMessage;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -19,15 +20,16 @@ import static ui.EscapeSequences.*;
 
 public class ChessClient {
     private final ServerFacade server;
-//    private final WebSocketFacade ws;
+    private final WebSocketFacade ws;
     private State state = State.SIGNEDOUT;
     private Repl currentRepl;
     private String username = null;
     private String authToken = null;
     private HashMap<Integer, GameData> gameListDisplayed;
 
-    public ChessClient(int port) {
+    public ChessClient(int port) throws ResponseException {
         server = new ServerFacade(port);
+        ws = new WebSocketFacade(server.getServerUrl(), this);
         currentRepl = new LoggedOutRepl( this );
         gameListDisplayed = new HashMap<Integer, GameData>();
 
@@ -204,6 +206,7 @@ public class ChessClient {
     }
 
     public String joinGameClient(String... params){
+        getListOfGamesClient();  // will reflect up to date changes in game list
         if (this.gameListDisplayed.size() == 0){
             return "There are no games to join.  Try creating a game first.";
         }
@@ -234,7 +237,7 @@ public class ChessClient {
                 boardToPrint = new DrawChess(this.gameListDisplayed.get(i).game().getBoard(),
                         color.equals("WHITE") ? ChessGame.TeamColor.WHITE : ChessGame.TeamColor.BLACK).main();
                 getListOfGamesClient();  // will reflect that player is now in a game on the list
-                server.
+                ws.connectToGame(this.authToken, this.gameListDisplayed.get(i).gameID(), color.equals("WHITE") ? ChessGame.TeamColor.WHITE : ChessGame.TeamColor.BLACK);
                 return String.format("%s is now playing in game '%s' as %s\n\n%s",
                         this.username,
                         this.gameListDisplayed.get(i).gameName(),
@@ -299,6 +302,10 @@ public class ChessClient {
     public String resignClient(String... params){
         // TODO: this needs to to other chess things to resign the game
         return "resign game";
+    }
+
+    public void notify(ServerMessage message){
+        System.out.println(message.toString());
     }
 
 }

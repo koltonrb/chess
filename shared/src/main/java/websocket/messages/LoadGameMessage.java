@@ -9,4 +9,11 @@ public class LoadGameMessage extends ServerMessage{
         super(ServerMessageType.LOAD_GAME);
         this.game = game;
     }
+
+    @Override
+    public String toString() {
+        return "LoadGameMessage{" +
+                "game=" + game +
+                '}';
+    }
 }

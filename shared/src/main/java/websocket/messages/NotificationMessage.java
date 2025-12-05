@@ -12,4 +12,11 @@ public class NotificationMessage extends ServerMessage{
     public String getMsg() {
         return msg;
     }
+
+    @Override
+    public String toString() {
+        return "NotificationMessage{" +
+                "msg='" + msg + '\'' +
+                '}';
+    }
 }

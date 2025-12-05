@@ -7,4 +7,11 @@ public class ErrorMessage extends ServerMessage {
         super(ServerMessageType.ERROR);
         this.errorMessage = msg;
     }
+
+    @Override
+    public String toString() {
+        return "ErrorMessage{" +
+                "errorMessage='" + errorMessage + '\'' +
+                '}';
+    }
 }

@@ -24,6 +24,10 @@ public class ServerFacade {
         authToken = null;
     }
 
+    public String getServerUrl() {
+        return serverUrl;
+    }
+
     public void setAuthToken(String authToken) {
         this.authToken = authToken;
     }
@@ -117,7 +121,5 @@ public class ServerFacade {
         HttpResponse<String> response = sendRequest( request );
         return handleResponse( response, ClearResult.class);
     }
-
-    public Web
 
 }
