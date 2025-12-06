@@ -144,6 +144,18 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             playingUsername = gameData.blackUsername();
             opposingUsername = gameData.whiteUsername();
         }
+        // also check if it is your turn.  there is probably a better solution using authtokens stored adjacent to the usernames games table
+        if ((updatedGame.getTeamTurn() != playingColor) || (username.equals( opposingUsername ))){
+            sendMessage(session, new ErrorMessage("Error: you can only play on your turn"));
+            moveIsValid = Boolean.FALSE;
+        }
+
+        //check that you are not playing the other team's piece
+        if ((updatedGame.getBoard().getPiece( command.getMove().getStartPosition()) != null )
+                && (updatedGame.getBoard().getPiece( command.getMove().getStartPosition()).getTeamColor().equals( opposingColor ))){
+            sendMessage(session, new ErrorMessage("Error: you can only move your own pieces"));
+            moveIsValid = Boolean.FALSE;
+        }
 
         // check that you are not in stalemate---IE that you still have at least one legal move to make.
         if (updatedGame.isInStalemate(playingColor)) {
@@ -154,13 +166,14 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             connections.broadcast(command.getGameID(), null, new NotificationMessage(inStalemateBroadcast));
             // and record that the game is over!
             gameOver = Boolean.TRUE;
+            moveIsValid = Boolean.FALSE;
             try {
                 this.dataAccess.concludeGame(command.getGameID());
             } catch (DataAccessException e) {
                 sendMessage(session, new ErrorMessage("Error: couldn't conclude the game at stalemate."));
             }
         }
-        if (!gameOver) {
+        if ((!gameOver) && (moveIsValid)) {
             try {
                 // try to make the move.  Will throw an error in not a valid move.
                 updatedGame.makeMove(command.getMove());
