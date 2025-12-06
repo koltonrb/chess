@@ -1,5 +1,6 @@
 package server;
 
+import chess.InvalidMoveException;
 import exception.AlreadyTakenException;
 import exception.BadRequestException;
 import exception.DataAccessException;
@@ -52,6 +53,7 @@ public class Server {
                 .put("/game", this::joinGame)
                 .patch("/game", this::updateGame)
                 .patch("/gameover", this::concludeGame)
+//                .patch("/gamemove", this::makeMoveInGame)
                 .exception(AlreadyTakenException.class, this::alreadyTakenExceptionHandler)
                 .exception(BadRequestException.class, this::badRequestExceptionHandler)
                 .exception(UnauthorizedException.class, this::unauthorizedExceptionHandler)
@@ -163,5 +165,12 @@ public class Server {
         ConcludeGameResult result = gameService.concludeGame( request, authToken );
         ctx.status(200).json(new Gson().toJson( result));
     }
+
+//    private void makeMoveInGame(Context ctx) throws DataAccessException {
+//        String authToken = ctx.header("authorization");
+//        MakeMoveRequest request = new Gson().fromJson(ctx.body(), MakeMoveRequest.class);
+//        MakeMoveResult result = gameService.makeMoveGame( request, authToken );
+//        ctx.status(200).json(new Gson().toJson( result));
+//    }
 
 }

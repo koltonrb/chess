@@ -1,6 +1,7 @@
 package websocket.messages;
 
 public class ErrorMessage extends ServerMessage {
+
     String errorMessage;
 
     public ErrorMessage(String msg){
@@ -13,5 +14,9 @@ public class ErrorMessage extends ServerMessage {
         return "ErrorMessage{" +
                 "errorMessage='" + errorMessage + '\'' +
                 '}';
+    }
+
+    public String getErrorMessage() {
+        return errorMessage;
     }
 }

@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import requests.*;
 import results.*;
 
+import java.lang.module.ResolutionException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -132,6 +133,12 @@ public class ServerFacade {
         HttpRequest request = buildRequest("PATCH", "/gameover", userInput);
         HttpResponse<String> response = sendRequest( request );
         return handleResponse( response, ConcludeGameResult.class);
+    }
+
+    public MakeMoveResult makeMove(MakeMoveRequest userInput) throws ResponseException{
+        HttpRequest request = buildRequest("PATCH", "/gamemove", userInput);
+        HttpResponse<String> response = sendRequest( request );
+        return handleResponse( response, MakeMoveResult.class);
     }
 
 }

@@ -418,16 +418,44 @@ public class ChessClient {
         }
         ChessPosition startSquare = new ChessPosition(start);
         ChessPosition endSquare = new ChessPosition(end);
+        ChessMove desiredMove = new ChessMove(startSquare, endSquare, promoPiece);
+
+        // else make the move!
+        // this valid move check should be done ON THE SERVER TODO
+//        try {
+//            this.currentGame.game().makeMove(desiredMove);
+//        } catch (InvalidMoveException e) {
+//            return "that is not a valid move. Try again";
+//        }
+//        UpdateGameRequest request = new UpdateGameRequest( this.currentGame );
+//        try {
+//            // fixme: may need a separate make move update method?
+//            UpdateGameResult result = server.updateGame( request );
+//        } catch (ResponseException e) {
+//            return "failed to make the move";
+//        }
+//
+//        // now share the move!
+//        try {
+//            ws.makeMove(this.authToken, this.currentGame.gameID(), start, end, desiredMove);
+//        } catch (ResponseException e) {
+//            return "failed to broadcast move";
+//        }
+        try {
+            ws.makeMove(this.authToken, this.currentGame.gameID(), start, end, desiredMove, this.perspective);
+        } catch (ResponseException e) {
+            return "failed to make or report the move";
+        }
         // check if the move is valid
         if (this.currentGame.game().getBoard().getPiece(startSquare) == null){
             return String.format("there is no piece at %s.", start);
         }
         if ((this.currentGame.game().getBoard().getPiece(startSquare) != null)
-            &&( this.currentGame.game().getBoard().getPiece(startSquare).getTeamColor() != this.perspective)){
+                &&( this.currentGame.game().getBoard().getPiece(startSquare).getTeamColor() != this.perspective)){
             return String.format("you can only move your team's pieces");
         }
         ArrayList<ChessMove> validMoves = (ArrayList<ChessMove>) this.currentGame.game().validMoves(startSquare);
-        ChessMove desiredMove = new ChessMove(startSquare, endSquare, promoPiece);
+//        ChessMove desiredMove = new ChessMove(startSquare, endSquare, promoPiece);
         Boolean moveIsValid = Boolean.FALSE;
         for (ChessMove move : validMoves){
             if (move.equals(desiredMove)){
@@ -440,27 +468,7 @@ public class ChessClient {
             invalidMoveReturn += promoPiece == null ? "" : String.format(" with promo piece %s", promoPiece.toString());
             return invalidMoveReturn;
         }
-
-        // else make the move!
-        try {
-            this.currentGame.game().makeMove(desiredMove);
-        } catch (InvalidMoveException e) {
-            return "that is not a valid move. Try again";
-        }
-        UpdateGameRequest request = new UpdateGameRequest( this.currentGame );
-        try {
-            // fixme: may need a separate make move update method?
-            UpdateGameResult result = server.updateGame( request );
-        } catch (ResponseException e) {
-            return "failed to make the move";
-        }
-        // now share the move!
-        try {
-            ws.makeMove(this.authToken, this.currentGame.gameID(), start, end);
-        } catch (ResponseException e) {
-            return "failed to broadcast move";
-        }
-        return "opponent's move";
+        return "opponent's turn.  Wait for their play. ";
     }
 
     public String resignClient(String... params){

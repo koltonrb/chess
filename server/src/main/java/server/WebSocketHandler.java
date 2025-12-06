@@ -1,6 +1,7 @@
 package server;
 
 import chess.ChessGame;
+import chess.InvalidMoveException;
 import com.google.gson.Gson;
 import dataaccess.DataAccess;
 import exception.DataAccessException;
@@ -123,16 +124,49 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         // session should stay active until users each leave
     }
 
-    private void makeMove(Session session, String username, MakeMoveCommand command, GameData game) throws IOException {
-        // send a board (and updated game) back to the root client
-        sendMessage(session, new LoadGameMessage(game));
-        // broadcast a message to the other clients that the root client made a move
-        String broadcastMessage = "";
-        broadcastMessage += username;
-        broadcastMessage += String.format(" made a move from %s to %s", command.getStart(), command.getEnd());
-        connections.broadcast(command.getGameID(), session, new NotificationMessage(broadcastMessage));
-        // and send a board (and updated game) to the other clients, too.
-        connections.broadcast(command.getGameID(), session, new LoadGameMessage(game));
+    private void makeMove(Session session, String username, MakeMoveCommand command, GameData gameData) throws IOException {
+        ChessGame updatedGame = gameData.game();
+        Boolean moveIsValid = Boolean.TRUE;
+        Boolean gameOver = Boolean.FALSE;
+        try{
+            updatedGame.makeMove( command.getMove() );
+            if (updatedGame.isInCheck( command.getColor().equals(ChessGame.TeamColor.WHITE) ? ChessGame.TeamColor.BLACK : ChessGame.TeamColor.WHITE)){
+                // see if making the move places the other team in check, then notify
+                // todo send message about check status around
+                // todo also somewhere in this method update if the game was won or stalemated.
+            }
+            // TODO ditto for stalemate, checkmate
+            // NOTE: you check if the move places the current team in danger in ChessGame.makeMove()
+        } catch (InvalidMoveException e) {
+            sendMessage(session, new ErrorMessage("Error: invalid move! Try again."));
+            moveIsValid = Boolean.FALSE;
+
+        }
+        if (moveIsValid) {
+            // now actually record the move
+            try {
+                dataAccess.updateGame(new GameData(gameData.gameID(),
+                        gameData.whiteUsername(),
+                        gameData.blackUsername(),
+                        gameData.gameName(),
+                        updatedGame,
+                        gameData.canUpdate()
+                ));
+            } catch (DataAccessException e) {
+                sendMessage(session, new ErrorMessage("Error: couldn't update game"));
+            }
+            // send a board (and updated game) back to the root client
+            sendMessage(session, new LoadGameMessage(gameData));
+            // broadcast a message to the other clients that the root client made a move
+            String broadcastMessage = "";
+            broadcastMessage += username;
+            broadcastMessage += String.format(" made a move from %s to %s", command.getStart(), command.getEnd());
+            connections.broadcast(command.getGameID(), session, new NotificationMessage(broadcastMessage));
+            // and send a board (and updated game) to the other clients, too.
+            connections.broadcast(command.getGameID(), session, new LoadGameMessage(gameData));
+        }
     }
+
+
 
 }

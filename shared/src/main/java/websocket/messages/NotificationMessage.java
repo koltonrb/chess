@@ -2,7 +2,7 @@ package websocket.messages;
 
 public class NotificationMessage extends ServerMessage{
 
-    private final String msg;
+    private final String message;
 //    private final NotificationMessageType notificationMessageType;
 //
 //    public enum NotificationMessageType{
@@ -14,22 +14,22 @@ public class NotificationMessage extends ServerMessage{
 //        PLAYER_RESIGN,
 //    }
 
-    public NotificationMessage(String msg
+    public NotificationMessage(String message
 //                               NotificationMessageType type
     ){
         super(ServerMessageType.NOTIFICATION);
-        this.msg = msg;
+        this.message = message;
 //        this.notificationMessageType = type;
     }
 
-    public String getMsg() {
-        return msg;
+    public String getMessage() {
+        return message;
     }
 
     @Override
     public String toString() {
         return "NotificationMessage{" +
-                "msg='" + msg + '\'' +
+                "msg='" + message + '\'' +
                 '}';
     }
 }
