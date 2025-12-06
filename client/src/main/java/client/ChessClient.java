@@ -1,6 +1,6 @@
 package client;
 
-import chess.ChessGame;
+import chess.*;
 import model.GameData;
 import repl.LoggedInRepl;
 import repl.LoggedOutRepl;
@@ -9,15 +9,9 @@ import repl.Repl;
 import requests.*;
 import results.*;
 import ui.DrawChess;
-import websocket.commands.ResignCommand;
 import websocket.messages.LoadGameMessage;
-import websocket.messages.NotificationMessage;
-import websocket.messages.ServerMessage;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Scanner;
+import java.util.*;
 
 import static ui.EscapeSequences.*;
 
@@ -311,8 +305,16 @@ public class ChessClient {
     public String drawClient(String... params){
         getListOfGamesClient();  // will reflect up to date changes in game list
         String boardToPrint = "";
-        boardToPrint = new DrawChess(this.gameListDisplayed.get(this.gameNumber).game().getBoard(),
-                        this.perspective != null ? this.perspective : ChessGame.TeamColor.WHITE).main();
+        if ((this.gameListDisplayed.get(this.gameNumber) != null)
+            && (Objects.equals(this.gameListDisplayed.get(this.gameNumber).gameID(), this.currentGame.gameID()))) {
+            // then fetch and draw the most up to date version
+            boardToPrint = new DrawChess(this.gameListDisplayed.get(this.gameNumber).game().getBoard(),
+                            this.perspective != null ? this.perspective : ChessGame.TeamColor.WHITE).main();
+        } else {
+            // draw what the client last received from the server
+            boardToPrint = new DrawChess(this.currentGame.game().getBoard(),
+                    this.perspective != null ? this.perspective : ChessGame.TeamColor.WHITE).main();
+        }
         return boardToPrint;
     }
 
@@ -363,15 +365,106 @@ public class ChessClient {
     }
 
     public String moveClient(String... params){
-        //todo
-        return "YOU NEED TO IMPLEMENT moveClient STILL";
+        // fixme update gamelist here?
+        if (this.currentGame.game().getTeamTurn() != this.perspective){
+            return "it is not your turn to play!";
+        }
+        if (params.length < 2){
+            return "you must provide directions for your army! <start file><start rank> <end file><end rank> <promotion?>";
+        }
+        ChessPiece.PieceType promoPiece;
+        if (params.length > 3){
+            return "you must provide both a start space and an end space like A1 B1 <start file><start rank> <end file><end rank> <promotion?>";
+        }
+        String start = params[0].trim().toUpperCase();
+        String end = params[1].trim().toUpperCase();
+        if (params.length > 2) {
+            String promoString = params[2].trim().toUpperCase(); // remember zero indexed
+            // check if promotion piece is valid
+            if (!(promoString.equals("B") || promoString.equals("N") || promoString.equals("R") || promoString.equals("Q"))){
+                return "valid promotion pieces are B, N, R, Q";
+            }
+            HashMap<String, ChessPiece.PieceType> promotionPieces = new HashMap<String, ChessPiece.PieceType>();
+            promotionPieces.put("B", ChessPiece.PieceType.BISHOP);
+            promotionPieces.put("N", ChessPiece.PieceType.KNIGHT);
+            promotionPieces.put("R", ChessPiece.PieceType.ROOK);
+            promotionPieces.put("Q", ChessPiece.PieceType.QUEEN);
+
+            promoPiece = promotionPieces.get(promoString);
+
+        } else {
+            String promoString = null;
+            promoPiece = null;
+        }
+        // check if input is letter+number
+        if ((start.length() != 2 ) || (end.length() != 2)){
+            return "acceptable start and end spaces are A1 through H8.  Provide <start file><start rank> <end file><end rank> <promotion?>";
+        }
+        char startColTemp = Character.toUpperCase(start.charAt(0));
+        char endColTemp = Character.toUpperCase(end.charAt(0));
+        if (startColTemp < 'A' || endColTemp > 'H'){
+            return "valid files (columns) are A through H only. Provide <start file><start rank> <end file><end rank> <promotion?>";
+        }
+        Integer startRowTemp;
+        Integer endRowTemp;
+        try {
+            startRowTemp = Integer.parseInt(String.valueOf(start.charAt(1)));
+            endRowTemp = Integer.parseInt(String.valueOf(end.charAt(1)));
+        } catch (Exception ex){
+            return "valid ranks (rows) are 1 through 8. Provide <start file><start rank> <end file><end rank> <promotion?>";
+        }
+        if (startRowTemp < 1 || startRowTemp > 8 || endRowTemp < 1 || endRowTemp > 8){
+            return "valid ranks (rows) are 1 through 8. Provide <start file><start rank> <end file><end rank> <promotion?>";
+        }
+        ChessPosition startSquare = new ChessPosition(start);
+        ChessPosition endSquare = new ChessPosition(end);
+        // check if the move is valid
+        if (this.currentGame.game().getBoard().getPiece(startSquare) == null){
+            return String.format("there is no piece at %s.", start);
+        }
+        if ((this.currentGame.game().getBoard().getPiece(startSquare) != null)
+            &&( this.currentGame.game().getBoard().getPiece(startSquare).getTeamColor() != this.perspective)){
+            return String.format("you can only move your team's pieces");
+        }
+        ArrayList<ChessMove> validMoves = (ArrayList<ChessMove>) this.currentGame.game().validMoves(startSquare);
+        ChessMove desiredMove = new ChessMove(startSquare, endSquare, promoPiece);
+        Boolean moveIsValid = Boolean.FALSE;
+        for (ChessMove move : validMoves){
+            if (move.equals(desiredMove)){
+                moveIsValid = Boolean.TRUE;
+                break;
+            }
+        }
+        if (!moveIsValid) {
+            String invalidMoveReturn = String.format("Invalid move: %s to %s", start, end);
+            invalidMoveReturn += promoPiece == null ? "" : String.format(" with promo piece %s", promoPiece.toString());
+            return invalidMoveReturn;
+        }
+
+        // else make the move!
+        try {
+            this.currentGame.game().makeMove(desiredMove);
+        } catch (InvalidMoveException e) {
+            return "that is not a valid move. Try again";
+        }
+        UpdateGameRequest request = new UpdateGameRequest( this.currentGame );
+        try {
+            // fixme: may need a separate make move update method?
+            UpdateGameResult result = server.updateGame( request );
+        } catch (ResponseException e) {
+            return "failed to make the move";
+        }
+        // now share the move!
+        try {
+            ws.makeMove(this.authToken, this.currentGame.gameID(), start, end);
+        } catch (ResponseException e) {
+            return "failed to broadcast move";
+        }
+        return "opponent's move";
     }
 
     public String resignClient(String... params){
         getListOfGamesClient();  // will reflect up to date changes in game list
-
-        // TODO: this needs to to other chess things to resign the game
-        // TODO:  need some sort of is-playing flag (observers cannot resign)
         if (! this.isPlaying ){
             return "you are not playing a game and so cannot resign";
         } else if (this.hasResigned) {
@@ -385,7 +478,6 @@ public class ChessClient {
             String line = scanner.nextLine();
             String[] tokens = line.trim().toLowerCase().split("\\s+");
             if (tokens[0].equals("y")){
-                // todo other game handling here.  mark the game so that no more moves can be made.
                 GameData currentGame = this.gameListDisplayed.get(this.gameNumber);
                 GameData updatedGame = new GameData(currentGame.gameID(),
                         currentGame.whiteUsername(),
@@ -422,7 +514,9 @@ public class ChessClient {
     }
 
     public void notifyDrawBoard(LoadGameMessage message){
-        System.out.println( "\n\n" + new DrawChess( message.getGameData().game().getBoard(), this.perspective).main() );
+        // the client should receive and record the current game state AND print the updated board
+        this.currentGame = message.getGame();
+        System.out.println( "\n\n" + new DrawChess( message.getGame().game().getBoard(), this.perspective).main() );
     }
 
 }

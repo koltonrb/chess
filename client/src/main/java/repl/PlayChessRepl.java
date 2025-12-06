@@ -62,7 +62,7 @@ public class PlayChessRepl implements Repl{
                 -redraw the chess board "draw"
                 -highlight legal moves for a given piece "highlight <col> <row>"
                 -leave the game (you or another player may resume play later) "leave"
-                -make a move in the game "move <current col> <current row> <destination col> <destination row>
+                -make a move in the game "move <current col><current row> <destination col><destination row>
                 -forfeit the game "resign"
                 -help with possible commands "help"
                 """;

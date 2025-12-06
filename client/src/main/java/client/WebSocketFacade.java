@@ -2,11 +2,13 @@ package client;
 
 
 import chess.ChessGame;
+import chess.ChessMove;
 import com.google.gson.Gson;
 
 import jakarta.websocket.*;
 import websocket.commands.ConnectCommand;
 import websocket.commands.LeaveGameCommand;
+import websocket.commands.MakeMoveCommand;
 import websocket.commands.ResignCommand;
 import websocket.messages.ErrorMessage;
 import websocket.messages.LoadGameMessage;
@@ -84,6 +86,15 @@ public class WebSocketFacade extends Endpoint{
     public void resignGame(String authToken, Integer gameID, ChessGame.TeamColor color) throws ResponseException {
         try{
             ResignCommand action = new ResignCommand(authToken, gameID, color);
+            this.session.getBasicRemote().sendText(new Gson().toJson(action));
+        } catch (IOException ex) {
+            throw new ResponseException(ResponseException.Code.OtherServerError, ex.getMessage());
+        }
+    }
+
+    public void makeMove(String authToken, Integer gameID, String start, String end) throws ResponseException {
+        try {
+            MakeMoveCommand action = new MakeMoveCommand(authToken, gameID, start, end);
             this.session.getBasicRemote().sendText(new Gson().toJson(action));
         } catch (IOException ex) {
             throw new ResponseException(ResponseException.Code.OtherServerError, ex.getMessage());

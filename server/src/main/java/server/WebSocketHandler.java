@@ -51,7 +51,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             switch (command.getCommandType()) {
                 case CONNECT -> connect(session, username, new Gson().fromJson(ctx.message(), ConnectCommand.class), game);
                 //TODO
-//                case MAKE_MOVE -> makeMove(session, username, (MakeMoveCommand) command);
+                case MAKE_MOVE -> makeMove(session, username,  new Gson().fromJson(ctx.message(), MakeMoveCommand.class), game);
                 case LEAVE -> leaveGame(session, username, new Gson().fromJson(ctx.message(), LeaveGameCommand.class));
                 case RESIGN -> resignGame(session, username, new Gson().fromJson(ctx.message(), ResignCommand.class));
             }
@@ -121,6 +121,18 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         broadcastMessage += "\nthe game is over";
         connections.broadcast(command.getGameID(), session, new NotificationMessage(broadcastMessage));
         // session should stay active until users each leave
+    }
+
+    private void makeMove(Session session, String username, MakeMoveCommand command, GameData game) throws IOException {
+        // send a board (and updated game) back to the root client
+        sendMessage(session, new LoadGameMessage(game));
+        // broadcast a message to the other clients that the root client made a move
+        String broadcastMessage = "";
+        broadcastMessage += username;
+        broadcastMessage += String.format(" made a move from %s to %s", command.getStart(), command.getEnd());
+        connections.broadcast(command.getGameID(), session, new NotificationMessage(broadcastMessage));
+        // and send a board (and updated game) to the other clients, too.
+        connections.broadcast(command.getGameID(), session, new LoadGameMessage(game));
     }
 
 }

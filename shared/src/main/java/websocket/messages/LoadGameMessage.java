@@ -1,24 +1,23 @@
 package websocket.messages;
 
-import chess.ChessGame;
 import model.GameData;
 
 public class LoadGameMessage extends ServerMessage{
-    private GameData gameData;
+    private GameData game;
 
     public LoadGameMessage(GameData game){
         super(ServerMessageType.LOAD_GAME);
-        this.gameData = game;
+        this.game = game;
     }
 
-    public GameData getGameData() {
-        return gameData;
+    public GameData getGame() {
+        return game;
     }
 
     @Override
     public String toString() {
         return "LoadGameMessage{" +
-                "game=" + gameData +
+                "game=" + game +
                 '}';
     }
 }
