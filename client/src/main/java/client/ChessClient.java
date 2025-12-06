@@ -319,7 +319,6 @@ public class ChessClient {
     }
 
     public String highlightLegalMovesClient(String... params){
-        // todo
         return "YOU NEED TO IMPLEMENT highlightLegalMovesClient STILL";
     }
 
@@ -365,7 +364,7 @@ public class ChessClient {
     }
 
     public String moveClient(String... params){
-        // fixme update gamelist here?
+        // update gamelist here?
         if (this.currentGame.game().getTeamTurn() != this.perspective){
             return "it is not your turn to play!";
         }
@@ -420,27 +419,6 @@ public class ChessClient {
         ChessPosition endSquare = new ChessPosition(end);
         ChessMove desiredMove = new ChessMove(startSquare, endSquare, promoPiece);
 
-        // else make the move!
-        // this valid move check should be done ON THE SERVER TODO
-//        try {
-//            this.currentGame.game().makeMove(desiredMove);
-//        } catch (InvalidMoveException e) {
-//            return "that is not a valid move. Try again";
-//        }
-//        UpdateGameRequest request = new UpdateGameRequest( this.currentGame );
-//        try {
-//            // fixme: may need a separate make move update method?
-//            UpdateGameResult result = server.updateGame( request );
-//        } catch (ResponseException e) {
-//            return "failed to make the move";
-//        }
-//
-//        // now share the move!
-//        try {
-//            ws.makeMove(this.authToken, this.currentGame.gameID(), start, end, desiredMove);
-//        } catch (ResponseException e) {
-//            return "failed to broadcast move";
-//        }
         try {
             ws.makeMove(this.authToken, this.currentGame.gameID(), start, end, desiredMove, this.perspective);
         } catch (ResponseException e) {

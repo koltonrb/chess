@@ -36,7 +36,6 @@ public class WebSocketFacade extends Endpoint{
             this.session.addMessageHandler( new MessageHandler.Whole<String>() {
                 @Override
                 public void onMessage(String message) {
-                    //fixme: this only handles the server messages, may need to deserialize to a different subclass What about their subtypes?
                     ServerMessage msg = new Gson().fromJson(message, ServerMessage.class);
                     if (msg.getServerMessageType()== ServerMessage.ServerMessageType.ERROR){
                         ErrorMessage errorMessage = new Gson().fromJson(message, ErrorMessage.class);
@@ -47,7 +46,6 @@ public class WebSocketFacade extends Endpoint{
                     } else if (msg.getServerMessageType() == ServerMessage.ServerMessageType.NOTIFICATION) {
                         NotificationMessage notificationMsg = new Gson().fromJson(message, NotificationMessage.class);
                         client.notify( notificationMsg.getMessage() );
-                        // fixme: abandon this basic print out?
                     }
 
                 }
@@ -69,8 +67,6 @@ public class WebSocketFacade extends Endpoint{
             throw new ResponseException(ResponseException.Code.OtherServerError, ex.getMessage());
         }
     }
-
-    //TODO add other UserGameCommand options here
 
     public void leaveGame(String authToken, Integer gameID, ChessGame.TeamColor color) throws ResponseException {
         try{
