@@ -98,6 +98,40 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
     }
 
     private void leaveGame(Session session, String username, LeaveGameCommand command) throws IOException {
+        // check if can leave game
+        GameData currentGameData = new GameData(null, null, null, null, null, null);
+        try {
+            currentGameData = this.dataAccess.getGames().get( command.getGameID() );
+        } catch (DataAccessException e) {
+            sendMessage(session, new ErrorMessage("Error: failed to record leave"));
+        }
+        GameData updatedGameData;
+        if (username.equals(currentGameData.whiteUsername())){
+           // then playing white
+            updatedGameData = new GameData(currentGameData.gameID(),
+                    null,
+                    currentGameData.blackUsername(),
+                    currentGameData.gameName(),
+                    currentGameData.game(),
+                    currentGameData.canUpdate());
+        } else if (username.equals(currentGameData.blackUsername())) {
+            // then playing black
+            updatedGameData = new GameData(currentGameData.gameID(),
+                    currentGameData.whiteUsername(),
+                    null,
+                    currentGameData.gameName(),
+                    currentGameData.game(),
+                    currentGameData.canUpdate());
+        } else {
+            // then observer
+            updatedGameData = currentGameData;
+        }
+        try {
+            this.dataAccess.updateGame( updatedGameData );
+        } catch (DataAccessException e) {
+            new ErrorMessage("Error: recording leave failed.");
+        }
+
         // broadcast a message to the other clients that the root client left the game
         String broadcastMessage = "";
         broadcastMessage += username;
@@ -113,14 +147,39 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
     }
 
     private void resignGame(Session session, String username, ResignCommand command) throws IOException{
-        // broadcast a message to the other clients that the root client resigned the game
-        String broadcastMessage = "";
-        broadcastMessage += username;
-        broadcastMessage += " resigned the game and is no longer playing as ";
-        broadcastMessage += String.format("%s", command.getColor());
-        broadcastMessage += "\nthe game is over";
-        connections.broadcast(command.getGameID(), session, new NotificationMessage(broadcastMessage));
-        // session should stay active until users each leave
+        Boolean canResign = Boolean.TRUE;
+        // check that you can resign the game. Are you a player in the game?
+        GameData gameData = new GameData(null, null, null, null, null, null); 
+        try {
+            gameData = this.dataAccess.getGames().get(command.getGameID());
+        } catch (DataAccessException e) {
+            sendMessage(session, new ErrorMessage("Error: failed to record resign"));
+        }
+        if (!gameData.canUpdate()){
+            // then the game is already finished or someone already resigned
+            sendMessage(session, new ErrorMessage("Error: you cannot resign.  The game is already over."));
+            canResign = Boolean.FALSE;
+        }
+        if ((canResign) && !((username.equals(gameData.whiteUsername())) || (username.equals(gameData.blackUsername())))){
+            sendMessage(session, new ErrorMessage("Error: you cannot resign if you are not playing"));
+            canResign = Boolean.FALSE;
+        }
+        if (canResign) {
+            // broadcast a message to the other clients that the root client resigned the game
+            String broadcastMessage = "";
+            broadcastMessage += username;
+            broadcastMessage += " resigned the game and is no longer playing as ";
+            broadcastMessage += String.format("%s", command.getColor());
+            broadcastMessage += "\nthe game is over";
+            // record that the game is conceded
+            try {
+                this.dataAccess.concludeGame(command.getGameID());
+            } catch (DataAccessException e) {
+                sendMessage(session, new ErrorMessage("Error: failed to record the resignation"));
+            }
+            connections.broadcast(command.getGameID(), null, new NotificationMessage(broadcastMessage));
+            // session should stay active until users each leave
+        }
     }
 
     private void makeMove(Session session, String username, MakeMoveCommand command, GameData gameData) throws IOException {
@@ -144,8 +203,10 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             playingUsername = gameData.blackUsername();
             opposingUsername = gameData.whiteUsername();
         }
+        if (!gameData.canUpdate()){ gameOver = Boolean.TRUE;}
+
         // also check if it is your turn.  there is probably a better solution using authtokens stored adjacent to the usernames games table
-        if ((updatedGame.getTeamTurn() != playingColor) || (username.equals( opposingUsername )) || !(username.equals( playingUsername ))){
+        if ((updatedGame.getTeamTurn() != playingColor) || (username.equals( opposingUsername )) || !(username.equals( playingUsername )) || (gameOver)){
             sendMessage(session, new ErrorMessage("Error: you can only play on your turn"));
             moveIsValid = Boolean.FALSE;
         }
