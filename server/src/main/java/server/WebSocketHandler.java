@@ -145,14 +145,15 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             opposingUsername = gameData.whiteUsername();
         }
         // also check if it is your turn.  there is probably a better solution using authtokens stored adjacent to the usernames games table
-        if ((updatedGame.getTeamTurn() != playingColor) || (username.equals( opposingUsername ))){
+        if ((updatedGame.getTeamTurn() != playingColor) || (username.equals( opposingUsername )) || !(username.equals( playingUsername ))){
             sendMessage(session, new ErrorMessage("Error: you can only play on your turn"));
             moveIsValid = Boolean.FALSE;
         }
 
         //check that you are not playing the other team's piece
         if ((updatedGame.getBoard().getPiece( command.getMove().getStartPosition()) != null )
-                && (updatedGame.getBoard().getPiece( command.getMove().getStartPosition()).getTeamColor().equals( opposingColor ))){
+                && (updatedGame.getBoard().getPiece( command.getMove().getStartPosition()).getTeamColor().equals( opposingColor ))
+            && (moveIsValid)){
             sendMessage(session, new ErrorMessage("Error: you can only move your own pieces"));
             moveIsValid = Boolean.FALSE;
         }
