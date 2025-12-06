@@ -51,7 +51,6 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
 
             switch (command.getCommandType()) {
                 case CONNECT -> connect(session, username, new Gson().fromJson(ctx.message(), ConnectCommand.class), game);
-                //TODO
                 case MAKE_MOVE -> makeMove(session, username,  new Gson().fromJson(ctx.message(), MakeMoveCommand.class), game);
                 case LEAVE -> leaveGame(session, username, new Gson().fromJson(ctx.message(), LeaveGameCommand.class));
                 case RESIGN -> resignGame(session, username, new Gson().fromJson(ctx.message(), ResignCommand.class));
@@ -128,45 +127,94 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         ChessGame updatedGame = gameData.game();
         Boolean moveIsValid = Boolean.TRUE;
         Boolean gameOver = Boolean.FALSE;
-        try{
-            updatedGame.makeMove( command.getMove() );
-            if (updatedGame.isInCheck( command.getColor().equals(ChessGame.TeamColor.WHITE) ? ChessGame.TeamColor.BLACK : ChessGame.TeamColor.WHITE)){
-                // see if making the move places the other team in check, then notify
-                // todo send message about check status around
-                // todo also somewhere in this method update if the game was won or stalemated.
-            }
-            // TODO ditto for stalemate, checkmate
-            // NOTE: you check if the move places the current team in danger in ChessGame.makeMove()
-        } catch (InvalidMoveException e) {
-            sendMessage(session, new ErrorMessage("Error: invalid move! Try again."));
-            moveIsValid = Boolean.FALSE;
+        ChessGame.TeamColor playingColor;
 
+        if (command.getColor() != null) {
+            playingColor = command.getColor();
+        } else {
+            playingColor = gameData.game().getTeamTurn();
         }
-        if (moveIsValid) {
-            // now actually record the move
+        ChessGame.TeamColor opposingColor = playingColor.equals(ChessGame.TeamColor.WHITE) ? ChessGame.TeamColor.BLACK : ChessGame.TeamColor.WHITE;
+        String playingUsername;
+        String opposingUsername;
+        if (playingColor.equals(ChessGame.TeamColor.WHITE)) {
+            playingUsername = gameData.whiteUsername();
+            opposingUsername = gameData.blackUsername();
+        } else {
+            playingUsername = gameData.blackUsername();
+            opposingUsername = gameData.whiteUsername();
+        }
+
+        // check that you are not in stalemate---IE that you still have at least one legal move to make.
+        if (updatedGame.isInStalemate(playingColor)) {
+            // I think you only need to check stalemate for the team whose turn it is
+            // ends in a draw on their turn.
+            String inStalemateBroadcast = String.format("%s playing %s is in stalemate! the game is a draw.",
+                    playingUsername, playingColor);
+            connections.broadcast(command.getGameID(), null, new NotificationMessage(inStalemateBroadcast));
+            // and record that the game is over!
+            gameOver = Boolean.TRUE;
             try {
-                dataAccess.updateGame(new GameData(gameData.gameID(),
-                        gameData.whiteUsername(),
-                        gameData.blackUsername(),
-                        gameData.gameName(),
-                        updatedGame,
-                        gameData.canUpdate()
-                ));
+                this.dataAccess.concludeGame(command.getGameID());
             } catch (DataAccessException e) {
-                sendMessage(session, new ErrorMessage("Error: couldn't update game"));
+                sendMessage(session, new ErrorMessage("Error: couldn't conclude the game at stalemate."));
             }
-            // send a board (and updated game) back to the root client
-            sendMessage(session, new LoadGameMessage(gameData));
-            // broadcast a message to the other clients that the root client made a move
-            String broadcastMessage = "";
-            broadcastMessage += username;
-            broadcastMessage += String.format(" made a move from %s to %s", command.getStart(), command.getEnd());
-            connections.broadcast(command.getGameID(), session, new NotificationMessage(broadcastMessage));
-            // and send a board (and updated game) to the other clients, too.
-            connections.broadcast(command.getGameID(), session, new LoadGameMessage(gameData));
+        }
+        if (!gameOver) {
+            try {
+                // try to make the move.  Will throw an error in not a valid move.
+                updatedGame.makeMove(command.getMove());
+
+                // should I recheck for stalemate here?  IE check if I just used my last legal move?  But no.
+                // Opposing move could open some options.
+            } catch (InvalidMoveException e) {
+                sendMessage(session, new ErrorMessage("Error: invalid move! Try again."));
+                moveIsValid = Boolean.FALSE;
+
+            }
+            if (moveIsValid) {
+                // now actually record the move
+                try {
+                    dataAccess.updateGame(new GameData(gameData.gameID(),
+                            gameData.whiteUsername(),
+                            gameData.blackUsername(),
+                            gameData.gameName(),
+                            updatedGame,
+                            gameData.canUpdate()
+                    ));
+                } catch (DataAccessException e) {
+                    sendMessage(session, new ErrorMessage("Error: couldn't update game"));
+                }
+                // send a board (and updated game) back to the root client
+                sendMessage(session, new LoadGameMessage(gameData));
+                // broadcast a message to the other clients that the root client made a move
+                String broadcastMessage = "";
+                broadcastMessage += username;
+                broadcastMessage += String.format(" made a move from %s to %s", command.getStart(), command.getEnd());
+                connections.broadcast(command.getGameID(), session, new NotificationMessage(broadcastMessage));
+                // and send a board (and updated game) to the other clients, too.
+                connections.broadcast(command.getGameID(), session, new LoadGameMessage(gameData));
+                // look for checkmate BEFORE check
+                if (updatedGame.isInCheckmate(opposingColor)) {
+                    String inCheckMateBroadcast = String.format("%s playing %s is in checkmate!  %s playing %s wins the game!",
+                            opposingUsername, opposingUsername, playingUsername, playingColor);
+                    connections.broadcast(command.getGameID(), null, new NotificationMessage(inCheckMateBroadcast));
+
+                    // and record that the game is over!
+                    gameOver = Boolean.TRUE;
+                    try {
+                        this.dataAccess.concludeGame(command.getGameID());
+                    } catch (DataAccessException e) {
+                        sendMessage(session, new ErrorMessage("Error: couldn't conclude the game at checkmate."));
+                    }
+                }
+
+                if (!(gameOver) && (updatedGame.isInCheck(opposingColor))) {
+                    // see if making the move places the other team in check, then notify
+                    String inCheckBroadcast = String.format("%s playing %s is in check!", opposingUsername, opposingColor);
+                    connections.broadcast(command.getGameID(), null, new NotificationMessage(inCheckBroadcast));
+                }
+            }
         }
     }
-
-
-
 }
