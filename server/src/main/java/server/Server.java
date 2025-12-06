@@ -166,11 +166,4 @@ public class Server {
         ctx.status(200).json(new Gson().toJson( result));
     }
 
-//    private void makeMoveInGame(Context ctx) throws DataAccessException {
-//        String authToken = ctx.header("authorization");
-//        MakeMoveRequest request = new Gson().fromJson(ctx.body(), MakeMoveRequest.class);
-//        MakeMoveResult result = gameService.makeMoveGame( request, authToken );
-//        ctx.status(200).json(new Gson().toJson( result));
-//    }
-
 }

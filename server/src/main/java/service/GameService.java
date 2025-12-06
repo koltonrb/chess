@@ -107,30 +107,4 @@ public class GameService {
 
     }
 
-    public MakeMoveResult makeMoveGame(MakeMoveRequest request, String authToken) throws DataAccessException, InvalidMoveException {
-        Integer gameID = request.gameID();
-
-        AuthData authData = dataAccess.getAuth(authToken);
-        if (authData == null){
-            throw new UnauthorizedException("unauthorized");
-        }
-
-        // find the game object and then try making the move!
-        GameData gameData = dataAccess.getGames().get( request.gameID());
-        ChessGame updatedGame = gameData.game();
-
-        updatedGame.makeMove( request.move());
-
-        // then save the changes to the server's copy of the game
-        // won't make it here if move is invalid... that is handled by the Server.invalidMoveExceptionHandler class
-        this.updateGame( new UpdateGameRequest( new GameData(gameData.gameID(),
-                gameData.whiteUsername(),
-                gameData.blackUsername(),
-                gameData.gameName(),
-                updatedGame,
-                gameData.canUpdate())),
-                authToken);
-
-        return new MakeMoveResult();
-    }
 }

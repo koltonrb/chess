@@ -76,7 +76,8 @@ public class MemoryDataAccess implements DataAccess {
     public void concludeGame(Integer gameID){
         GameData temp = this.games.get(gameID);
         this.games.remove(temp.gameID());
-        this.games.put(temp.gameID(), new GameData(temp.gameID(), temp.whiteUsername(), temp.blackUsername(), temp.gameName(), temp.game(), temp.canUpdate()));
+        this.games.put(temp.gameID(), new GameData(temp.gameID(),
+                temp.whiteUsername(), temp.blackUsername(), temp.gameName(), temp.game(), temp.canUpdate()));
     }
 
     public void clear(ClearRequest request){

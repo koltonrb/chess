@@ -187,7 +187,6 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         Boolean moveIsValid = Boolean.TRUE;
         Boolean gameOver = Boolean.FALSE;
         ChessGame.TeamColor playingColor;
-
         if (command.getColor() != null) {
             playingColor = command.getColor();
         } else {
@@ -204,13 +203,12 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             opposingUsername = gameData.whiteUsername();
         }
         if (!gameData.canUpdate()){ gameOver = Boolean.TRUE;}
-
         // also check if it is your turn.  there is probably a better solution using authtokens stored adjacent to the usernames games table
-        if ((updatedGame.getTeamTurn() != playingColor) || (username.equals( opposingUsername )) || !(username.equals( playingUsername )) || (gameOver)){
+        if ((updatedGame.getTeamTurn() != playingColor)
+                || (username.equals( opposingUsername )) || !(username.equals( playingUsername )) || (gameOver)){
             sendMessage(session, new ErrorMessage("Error: you can only play on your turn"));
             moveIsValid = Boolean.FALSE;
         }
-
         //check that you are not playing the other team's piece
         if ((updatedGame.getBoard().getPiece( command.getMove().getStartPosition()) != null )
                 && (updatedGame.getBoard().getPiece( command.getMove().getStartPosition()).getTeamColor().equals( opposingColor ))
@@ -218,7 +216,6 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             sendMessage(session, new ErrorMessage("Error: you can only move your own pieces"));
             moveIsValid = Boolean.FALSE;
         }
-
         // check that you are not in stalemate---IE that you still have at least one legal move to make.
         if (updatedGame.isInStalemate(playingColor)) {
             // I think you only need to check stalemate for the team whose turn it is
@@ -239,24 +236,18 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             try {
                 // try to make the move.  Will throw an error in not a valid move.
                 updatedGame.makeMove(command.getMove());
-
                 // should I recheck for stalemate here?  IE check if I just used my last legal move?  But no.
                 // Opposing move could open some options.
             } catch (InvalidMoveException e) {
                 sendMessage(session, new ErrorMessage("Error: invalid move! Try again."));
                 moveIsValid = Boolean.FALSE;
-
             }
             if (moveIsValid) {
                 // now actually record the move
                 try {
-                    dataAccess.updateGame(new GameData(gameData.gameID(),
-                            gameData.whiteUsername(),
-                            gameData.blackUsername(),
-                            gameData.gameName(),
-                            updatedGame,
-                            gameData.canUpdate()
-                    ));
+                    dataAccess.updateGame(new GameData(gameData.gameID(), gameData.whiteUsername(),
+                            gameData.blackUsername(), gameData.gameName(),
+                            updatedGame, gameData.canUpdate() ));
                 } catch (DataAccessException e) {
                     sendMessage(session, new ErrorMessage("Error: couldn't update game"));
                 }
@@ -274,7 +265,6 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                     String inCheckMateBroadcast = String.format("%s playing %s is in checkmate!  %s playing %s wins the game!",
                             opposingUsername, opposingUsername, playingUsername, playingColor);
                     connections.broadcast(command.getGameID(), null, new NotificationMessage(inCheckMateBroadcast));
-
                     // and record that the game is over!
                     gameOver = Boolean.TRUE;
                     try {
@@ -283,7 +273,6 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                         sendMessage(session, new ErrorMessage("Error: couldn't conclude the game at checkmate."));
                     }
                 }
-
                 if (!(gameOver) && (updatedGame.isInCheck(opposingColor))) {
                     // see if making the move places the other team in check, then notify
                     String inCheckBroadcast = String.format("%s playing %s is in check!", opposingUsername, opposingColor);

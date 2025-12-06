@@ -48,7 +48,8 @@ public class ChessClient {
                 System.out.println("Goodbye");
                 break;
             }
-            if (result.contains("You signed in as")  || result.contains("registered successfully") || result.equals("leave game") || result.equals("resign game")){
+            if (result.contains("You signed in as")  || result.contains("registered successfully")
+                    || result.equals("leave game") || result.equals("resign game")){
                 currentRepl = new LoggedInRepl( this);
             } else if (result.contains("logged out") || result.equals("logout")){
                 currentRepl = new LoggedOutRepl( this );
@@ -204,7 +205,6 @@ public class ChessClient {
         }
     }
 
-
     public String listGamesClient(){
         getListOfGamesClient();
         printGames(this.gameListDisplayed);
@@ -241,11 +241,10 @@ public class ChessClient {
             JoinGameRequest request = new JoinGameRequest(color, this.gameListDisplayed.get(i).gameID());
             JoinGameResult result = server.joinGame( request );
             if (result != null){
-//                String boardToPrint = "";
-//                boardToPrint = new DrawChess(this.gameListDisplayed.get(i).game().getBoard(),
-//                        color.equals("WHITE") ? ChessGame.TeamColor.WHITE : ChessGame.TeamColor.BLACK).main();
                 getListOfGamesClient();  // will reflect that player is now in a game on the list
-                ws.connectToGame(this.authToken, this.gameListDisplayed.get(i).gameID(), color.equals("WHITE") ? ChessGame.TeamColor.WHITE : ChessGame.TeamColor.BLACK);
+                ws.connectToGame(this.authToken,
+                        this.gameListDisplayed.get(i).gameID(), color.equals("WHITE")
+                                ? ChessGame.TeamColor.WHITE : ChessGame.TeamColor.BLACK);
                 this.isPlaying = Boolean.TRUE;
                 this.currentGame = this.gameListDisplayed.get(i);
                 this.hasResigned = Boolean.FALSE;
@@ -362,7 +361,6 @@ public class ChessClient {
         this.currentGame = null;
         return "leave game";
     }
-
     public String moveClient(String... params){
         // update gamelist here?
         if (this.currentGame.game().getTeamTurn() != this.perspective){
@@ -388,9 +386,7 @@ public class ChessClient {
             promotionPieces.put("N", ChessPiece.PieceType.KNIGHT);
             promotionPieces.put("R", ChessPiece.PieceType.ROOK);
             promotionPieces.put("Q", ChessPiece.PieceType.QUEEN);
-
             promoPiece = promotionPieces.get(promoString);
-
         } else {
             String promoString = null;
             promoPiece = null;
@@ -418,7 +414,6 @@ public class ChessClient {
         ChessPosition startSquare = new ChessPosition(start);
         ChessPosition endSquare = new ChessPosition(end);
         ChessMove desiredMove = new ChessMove(startSquare, endSquare, promoPiece);
-
         try {
             ws.makeMove(this.authToken, this.currentGame.gameID(), start, end, desiredMove, this.perspective);
         } catch (ResponseException e) {
@@ -433,7 +428,6 @@ public class ChessClient {
             return String.format("you can only move your team's pieces");
         }
         ArrayList<ChessMove> validMoves = (ArrayList<ChessMove>) this.currentGame.game().validMoves(startSquare);
-//        ChessMove desiredMove = new ChessMove(startSquare, endSquare, promoPiece);
         Boolean moveIsValid = Boolean.FALSE;
         for (ChessMove move : validMoves){
             if (move.equals(desiredMove)){
@@ -448,7 +442,6 @@ public class ChessClient {
         }
         return "opponent's turn.  Wait for their play. ";
     }
-
     public String resignClient(String... params){
         getListOfGamesClient();  // will reflect up to date changes in game list
         if (! this.isPlaying ){
@@ -494,15 +487,12 @@ public class ChessClient {
         }
         return "resign game";
     }
-
     public void notify(String message){
         System.out.println(message);
     }
-
     public void notifyDrawBoard(LoadGameMessage message){
         // the client should receive and record the current game state AND print the updated board
         this.currentGame = message.getGame();
         System.out.println( "\n\n" + new DrawChess( message.getGame().game().getBoard(), this.perspective).main() );
     }
-
 }

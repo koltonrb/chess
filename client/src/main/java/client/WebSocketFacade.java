@@ -59,9 +59,9 @@ public class WebSocketFacade extends Endpoint{
     @Override
     public void onOpen(Session session, EndpointConfig endpointConfig){}
 
-    public void connectToGame(String AuthToken, Integer gameID, ChessGame.TeamColor color) throws ResponseException {
+    public void connectToGame(String authToken, Integer gameID, ChessGame.TeamColor color) throws ResponseException {
         try{
-            ConnectCommand action = new ConnectCommand(AuthToken, gameID, color);
+            ConnectCommand action = new ConnectCommand(authToken, gameID, color);
             this.session.getBasicRemote().sendText(new Gson().toJson(action));
         } catch (IOException ex) {
             throw new ResponseException(ResponseException.Code.OtherServerError, ex.getMessage());
@@ -86,7 +86,12 @@ public class WebSocketFacade extends Endpoint{
         }
     }
 
-    public void makeMove(String authToken, Integer gameID, String start, String end, ChessMove move, ChessGame.TeamColor color) throws ResponseException {
+    public void makeMove(String authToken,
+                         Integer gameID,
+                         String start,
+                         String end,
+                         ChessMove move,
+                         ChessGame.TeamColor color) throws ResponseException {
         try {
             MakeMoveCommand action = new MakeMoveCommand(authToken, gameID, start, end, move, color);
             this.session.getBasicRemote().sendText(new Gson().toJson(action));
