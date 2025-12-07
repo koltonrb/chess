@@ -198,6 +198,9 @@ public class ChessClient {
                         this.gameListDisplayed.put(gameNumber, game);
                         gameNumber++;
                     }
+                    if ((this.currentGame!=null) && (game.gameID().equals(this.currentGame.gameID()))){
+                        this.currentGame = game;
+                    }
                 }
             }
         } catch (ResponseException ex){
@@ -267,6 +270,7 @@ public class ChessClient {
     }
 
     public String observeGameClient(String... params){
+        getListOfGamesClient();  // will reflect up to date changes in game list
         if (this.gameListDisplayed.size() == 0){
             return "There are no games to observe.";
         }
@@ -342,12 +346,12 @@ public class ChessClient {
                         currentGame.game(),
                         currentGame.canUpdate());
             }
-            UpdateGameRequest request = new UpdateGameRequest( updatedGame );
-            try {
-                UpdateGameResult result = server.updateGame(request);
-            } catch (ResponseException ex) {
-                return "Failed to exit the game";
-            }
+//            UpdateGameRequest request = new UpdateGameRequest( updatedGame );
+//            try {
+//                UpdateGameResult result = server.updateGame(request);
+//            } catch (ResponseException ex) {
+//                return "Failed to exit the game";
+//            }
         } else {
             // no updates necessary to the game data if observer leaves
             updatedGame = currentGame;
@@ -416,31 +420,31 @@ public class ChessClient {
         ChessMove desiredMove = new ChessMove(startSquare, endSquare, promoPiece);
         try {
             ws.makeMove(this.authToken, this.currentGame.gameID(), start, end, desiredMove, this.perspective);
+            return "opponent's turn.  Wait for their play. ";
         } catch (ResponseException e) {
             return "failed to make or report the move";
         }
-        // check if the move is valid
-        if (this.currentGame.game().getBoard().getPiece(startSquare) == null){
-            return String.format("there is no piece at %s.", start);
-        }
-        if ((this.currentGame.game().getBoard().getPiece(startSquare) != null)
-                &&( this.currentGame.game().getBoard().getPiece(startSquare).getTeamColor() != this.perspective)){
-            return String.format("you can only move your team's pieces");
-        }
-        ArrayList<ChessMove> validMoves = (ArrayList<ChessMove>) this.currentGame.game().validMoves(startSquare);
-        Boolean moveIsValid = Boolean.FALSE;
-        for (ChessMove move : validMoves){
-            if (move.equals(desiredMove)){
-                moveIsValid = Boolean.TRUE;
-                break;
-            }
-        }
-        if (!moveIsValid) {
-            String invalidMoveReturn = String.format("Invalid move: %s to %s", start, end);
-            invalidMoveReturn += promoPiece == null ? "" : String.format(" with promo piece %s", promoPiece.toString());
-            return invalidMoveReturn;
-        }
-        return "opponent's turn.  Wait for their play. ";
+//        // check if the move is valid
+//        if (this.currentGame.game().getBoard().getPiece(startSquare) == null){
+//            return String.format("there is no piece at %s.", start);
+//        }
+//        if ((this.currentGame.game().getBoard().getPiece(startSquare) != null)
+//                &&( this.currentGame.game().getBoard().getPiece(startSquare).getTeamColor() != this.perspective)){
+//            return String.format("you can only move your team's pieces");
+//        }
+//        ArrayList<ChessMove> validMoves = (ArrayList<ChessMove>) this.currentGame.game().validMoves(startSquare);
+//        Boolean moveIsValid = Boolean.FALSE;
+//        for (ChessMove move : validMoves){
+//            if (move.equals(desiredMove)){
+//                moveIsValid = Boolean.TRUE;
+//                break;
+//            }
+//        }
+//        if (!moveIsValid) {
+//            String invalidMoveReturn = String.format("Invalid move: %s to %s", start, end);
+//            invalidMoveReturn += promoPiece == null ? "" : String.format(" with promo piece %s", promoPiece.toString());
+//            return invalidMoveReturn;
+//        }
     }
     public String resignClient(String... params){
         getListOfGamesClient();  // will reflect up to date changes in game list
@@ -448,6 +452,8 @@ public class ChessClient {
             return "you are not playing a game and so cannot resign";
         } else if (this.hasResigned) {
             return "you already resigned";
+        } else if (!this.currentGame.canUpdate()){
+            return "the other player already resigned";
         }
         // user should receive a prompt to confirm if they really want to resign the game or not
         String result = "";
@@ -464,23 +470,15 @@ public class ChessClient {
                         currentGame.gameName(),
                         currentGame.game(),
                         Boolean.FALSE);
-                ConcludeGameRequest request = new ConcludeGameRequest(updatedGame.gameID());
-                ConcludeGameResult resignResult = null;
+
                 try {
-                    resignResult = server.concludeGame(request);
+                    ws.resignGame(this.authToken, updatedGame.gameID(), this.perspective);
                 } catch (ResponseException e) {
-                    return "failed to resign";
+                    return "Failed to announce resignation";
                 }
-                if (resignResult != null){
-                    try {
-                        ws.resignGame(this.authToken, updatedGame.gameID(), this.perspective);
-                    } catch (ResponseException e) {
-                        return "Failed to announce resignation";
-                    }
-                    getListOfGamesClient();
+                getListOfGamesClient();
                 this.hasResigned = Boolean.TRUE;  // updated to make it so we won't resign twice
                 return "resign game";
-                }
             } else if (tokens[0].equals("n")) {
                 return "continuing play";
             }

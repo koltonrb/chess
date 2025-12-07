@@ -38,7 +38,8 @@ public class DrawChess {
         this.board = board;
         this.perspective = perspective;
 
-        if (this.perspective == ChessGame.TeamColor.WHITE) {
+        if ((this.perspective == ChessGame.TeamColor.WHITE)  || (this.perspective==null)) {
+            // null for an observer?
             this.columnsForPerspective = WHITE_COLUMNS;
         } else {
             this.columnsForPerspective = BLACK_COLUMNS;

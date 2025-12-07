@@ -243,24 +243,6 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                 moveIsValid = Boolean.FALSE;
             }
             if (moveIsValid) {
-                // now actually record the move
-                try {
-                    dataAccess.updateGame(new GameData(gameData.gameID(), gameData.whiteUsername(),
-                            gameData.blackUsername(), gameData.gameName(),
-                            updatedGame, gameData.canUpdate() ));
-                } catch (DataAccessException e) {
-                    sendMessage(session, new ErrorMessage("Error: couldn't update game"));
-                }
-                // send a board (and updated game) back to the root client
-                sendMessage(session, new LoadGameMessage(gameData));
-                // broadcast a message to the other clients that the root client made a move
-                String broadcastMessage = "";
-                broadcastMessage += username;
-                broadcastMessage += String.format(" made a move from %s to %s", command.getStart(), command.getEnd());
-                connections.broadcast(command.getGameID(), session, new NotificationMessage(broadcastMessage));
-                // and send a board (and updated game) to the other clients, too.
-                connections.broadcast(command.getGameID(), session, new LoadGameMessage(gameData));
-                // look for checkmate BEFORE check
                 if (updatedGame.isInCheckmate(opposingColor)) {
                     String inCheckMateBroadcast = String.format("%s playing %s is in checkmate!  %s playing %s wins the game!",
                             opposingUsername, opposingUsername, playingUsername, playingColor);
@@ -278,6 +260,24 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                     String inCheckBroadcast = String.format("%s playing %s is in check!", opposingUsername, opposingColor);
                     connections.broadcast(command.getGameID(), null, new NotificationMessage(inCheckBroadcast));
                 }
+                // now actually record the move
+                GameData updatedGameData = new GameData(gameData.gameID(), gameData.whiteUsername(), gameData.blackUsername(),
+                        gameData.gameName(), updatedGame, gameOver);
+                try {
+                    dataAccess.updateGame(updatedGameData);
+                } catch (DataAccessException e) {
+                    sendMessage(session, new ErrorMessage("Error: couldn't update game"));
+                }
+                // send a board (and updated game) back to the root client
+//                sendMessage(session, new LoadGameMessage(updatedGameData));
+                // broadcast a message to the other clients that the root client made a move
+                String broadcastMessage = "";
+                broadcastMessage += username;
+                broadcastMessage += String.format(" made a move from %s to %s", command.getStart(), command.getEnd());
+                connections.broadcast(command.getGameID(), session, new NotificationMessage(broadcastMessage));
+                // and send a board (and updated game) to the other clients, too.
+                connections.broadcast(command.getGameID(), null, new LoadGameMessage(updatedGameData));
+                // look for checkmate BEFORE check
             }
         }
     }
