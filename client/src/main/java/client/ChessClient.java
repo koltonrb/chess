@@ -322,7 +322,30 @@ public class ChessClient {
     }
 
     public String highlightLegalMovesClient(String... params){
-        return "YOU NEED TO IMPLEMENT highlightLegalMovesClient STILL";
+        if (params.length < 1){
+            return "Which piece's legal moves would you like to see?  Provide command: \n highlight <file><rank>";
+        }
+        String squareString = params[0].trim().toUpperCase();
+        // check if input is letter+number
+        if (squareString.length() != 2 ){
+            return "acceptable location identifiers are A1 through H8.  Provide <file><rank>";
+        }
+        char colTemp = Character.toUpperCase(squareString.charAt(0));
+        if (colTemp < 'A' || colTemp > 'H'){
+            return "valid files (columns) are A through H only. Provide <file><rank>";
+        }
+        Integer rowTemp;
+        try {
+            rowTemp = Integer.parseInt(String.valueOf(squareString.charAt(1)));
+        } catch (Exception ex){
+            return "valid ranks (rows) are 1 through 8. Provide <file><rank>";
+        }
+        if (rowTemp < 1 || rowTemp > 8){
+            return "valid ranks (rows) are 1 through 8. Provide <file><rank>";
+        }
+        ChessPosition square = new ChessPosition( squareString );
+
+        return new DrawChess(this.currentGame.game().getBoard(), this.perspective).highlightMoves( square , this.currentGame.game());
     }
 
     public String leaveClient(String... params){
@@ -367,6 +390,9 @@ public class ChessClient {
     }
     public String moveClient(String... params){
         // update gamelist here?
+        if (this.perspective==null){
+            return "observers cannot make move";
+        }
         if (this.currentGame.game().getTeamTurn() != this.perspective){
             return "it is not your turn to play!";
         }
@@ -420,7 +446,7 @@ public class ChessClient {
         ChessMove desiredMove = new ChessMove(startSquare, endSquare, promoPiece);
         try {
             ws.makeMove(this.authToken, this.currentGame.gameID(), start, end, desiredMove, this.perspective);
-            return "opponent's turn.  Wait for their play. ";
+            return "";
         } catch (ResponseException e) {
             return "failed to make or report the move";
         }
@@ -491,6 +517,6 @@ public class ChessClient {
     public void notifyDrawBoard(LoadGameMessage message){
         // the client should receive and record the current game state AND print the updated board
         this.currentGame = message.getGame();
-        System.out.println( "\n\n" + new DrawChess( message.getGame().game().getBoard(), this.perspective).main() );
+        System.out.println( "\n" + new DrawChess( message.getGame().game().getBoard(), this.perspective).main() );
     }
 }
