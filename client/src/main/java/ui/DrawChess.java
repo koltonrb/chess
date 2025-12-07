@@ -22,7 +22,7 @@ public class DrawChess {
     private static final List<String> BLACK_COLUMNS = List.of("H", "G", "F", "E", "D", "C", "B", "A");
 
     private final ChessBoard board;
-    private final ChessGame.TeamColor perspective;
+    private ChessGame.TeamColor perspective;
     private final List<String> columnsForPerspective;
 
     public static final Map<ChessPiece.PieceType, String> PIECE_TO_STRING = Map.of(
@@ -36,9 +36,10 @@ public class DrawChess {
 
     public DrawChess(ChessBoard board, ChessGame.TeamColor perspective) {
         this.board = board;
-        this.perspective = perspective;
+//        this.perspective = perspective;
+        this.perspective = (perspective != null) ? perspective : ChessGame.TeamColor.WHITE;
 
-        if ((this.perspective == ChessGame.TeamColor.WHITE)  || (this.perspective==null)) {
+        if ((this.perspective == ChessGame.TeamColor.WHITE)) {
             // null for an observer?
             this.columnsForPerspective = WHITE_COLUMNS;
         } else {
