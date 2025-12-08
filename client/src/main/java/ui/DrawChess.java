@@ -77,13 +77,9 @@ public class DrawChess {
         if (board.getPiece( squareOfInterest )!= null){
             validMoves = (ArrayList<ChessMove>) game.validMoves( squareOfInterest );
         }
-
         StringBuilder sb = new StringBuilder();
-
         sb.append(ERASE_SCREEN);
         drawHeaders(sb);
-
-
 
         int startRow = switch (this.perspective) {
             case ChessGame.TeamColor.WHITE -> 7;

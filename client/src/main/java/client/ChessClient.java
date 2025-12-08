@@ -34,8 +34,6 @@ public class ChessClient {
         ws = new WebSocketFacade(server.getServerUrl(), this);
         currentRepl = new LoggedOutRepl( this );
         gameListDisplayed = new HashMap<Integer, GameData>();
-
-//        ws = new WebSocketFacade(serverUrl, this);
     }
 
     public void start(){
@@ -59,10 +57,6 @@ public class ChessClient {
         }
     }
 
-    private void printPrompt() {
-        System.out.print("\n" + RESET_TEXT_COLOR + ">>> " + SET_TEXT_COLOR_GREEN);
-    }
-
     public String registerClient (String ... params) {
         if (state != State.SIGNEDOUT){
             return "You are already signed in.  Sign out prior to registering another user.";
@@ -84,10 +78,8 @@ public class ChessClient {
                 state = State.SIGNEDIN;
                 this.username = result.username();
                 this.authToken = result.authToken();
-//                this.currentRepl = new LoggedInRepl(this);
                 this.server.setAuthToken(this.authToken);
                 this.getListOfGamesClient();
-//                this.start();
                 return String.format("new user %s registered successfully", result.username());
             }
         } catch (ResponseException ex){
@@ -118,11 +110,8 @@ public class ChessClient {
                     state = State.SIGNEDIN;
                     this.username = result.username();
                     this.authToken = result.authToken();
-//                    this.currentRepl = new LoggedInRepl( this );
-//                    System.out.printf("You signed in as %s%n", result.username());
                     server.setAuthToken( this.authToken );
                     this.getListOfGamesClient();
-//                    this.start();
                 }
                 return String.format("You signed in as %s", result.username());
 
@@ -369,12 +358,6 @@ public class ChessClient {
                         currentGame.game(),
                         currentGame.canUpdate());
             }
-//            UpdateGameRequest request = new UpdateGameRequest( updatedGame );
-//            try {
-//                UpdateGameResult result = server.updateGame(request);
-//            } catch (ResponseException ex) {
-//                return "Failed to exit the game";
-//            }
         } else {
             // no updates necessary to the game data if observer leaves
             updatedGame = currentGame;
@@ -389,9 +372,12 @@ public class ChessClient {
         return "leave game";
     }
     public String moveClient(String... params){
-        // update gamelist here?
+        getListOfGamesClient();  // will reflect up to date changes in game list
         if (this.perspective==null){
             return "observers cannot make move";
+        }
+        if (!this.currentGame.canUpdate()){
+            return "the game has concluded";
         }
         if (this.currentGame.game().getTeamTurn() != this.perspective){
             return "it is not your turn to play!";
@@ -405,22 +391,6 @@ public class ChessClient {
         }
         String start = params[0].trim().toUpperCase();
         String end = params[1].trim().toUpperCase();
-        if (params.length > 2) {
-            String promoString = params[2].trim().toUpperCase(); // remember zero indexed
-            // check if promotion piece is valid
-            if (!(promoString.equals("B") || promoString.equals("N") || promoString.equals("R") || promoString.equals("Q"))){
-                return "valid promotion pieces are B, N, R, Q";
-            }
-            HashMap<String, ChessPiece.PieceType> promotionPieces = new HashMap<String, ChessPiece.PieceType>();
-            promotionPieces.put("B", ChessPiece.PieceType.BISHOP);
-            promotionPieces.put("N", ChessPiece.PieceType.KNIGHT);
-            promotionPieces.put("R", ChessPiece.PieceType.ROOK);
-            promotionPieces.put("Q", ChessPiece.PieceType.QUEEN);
-            promoPiece = promotionPieces.get(promoString);
-        } else {
-            String promoString = null;
-            promoPiece = null;
-        }
         // check if input is letter+number
         if ((start.length() != 2 ) || (end.length() != 2)){
             return "acceptable start and end spaces are A1 through H8.  Provide <start file><start rank> <end file><end rank> <promotion?>";
@@ -443,6 +413,27 @@ public class ChessClient {
         }
         ChessPosition startSquare = new ChessPosition(start);
         ChessPosition endSquare = new ChessPosition(end);
+        if (((this.currentGame.game().getBoard().getPiece( startSquare ) != null)
+                && (this.currentGame.game().getBoard().getPiece( startSquare ).getPieceType() == ChessPiece.PieceType.PAWN))
+                && ((endSquare.getRow()==1) || (endSquare.getRow()==8))){
+            if (!(params.length > 2)){
+                return "you must provide a promotion piece (B, N, R, Q) to move a pawn to the final rank.  <start file><start rank> <end file><end rank> <promotion>";
+            }
+            String promoString = params[2].trim().toUpperCase(); // remember zero indexed
+            // check if promotion piece is valid
+            if (!(promoString.equals("B") || promoString.equals("N") || promoString.equals("R") || promoString.equals("Q"))){
+                return "valid promotion pieces are B, N, R, Q";
+            }
+            HashMap<String, ChessPiece.PieceType> promotionPieces = new HashMap<String, ChessPiece.PieceType>();
+            promotionPieces.put("B", ChessPiece.PieceType.BISHOP);
+            promotionPieces.put("N", ChessPiece.PieceType.KNIGHT);
+            promotionPieces.put("R", ChessPiece.PieceType.ROOK);
+            promotionPieces.put("Q", ChessPiece.PieceType.QUEEN);
+            promoPiece = promotionPieces.get(promoString);
+        } else {
+            String promoString = null;
+            promoPiece = null;
+        }
         ChessMove desiredMove = new ChessMove(startSquare, endSquare, promoPiece);
         try {
             ws.makeMove(this.authToken, this.currentGame.gameID(), start, end, desiredMove, this.perspective);
@@ -450,27 +441,6 @@ public class ChessClient {
         } catch (ResponseException e) {
             return "failed to make or report the move";
         }
-//        // check if the move is valid
-//        if (this.currentGame.game().getBoard().getPiece(startSquare) == null){
-//            return String.format("there is no piece at %s.", start);
-//        }
-//        if ((this.currentGame.game().getBoard().getPiece(startSquare) != null)
-//                &&( this.currentGame.game().getBoard().getPiece(startSquare).getTeamColor() != this.perspective)){
-//            return String.format("you can only move your team's pieces");
-//        }
-//        ArrayList<ChessMove> validMoves = (ArrayList<ChessMove>) this.currentGame.game().validMoves(startSquare);
-//        Boolean moveIsValid = Boolean.FALSE;
-//        for (ChessMove move : validMoves){
-//            if (move.equals(desiredMove)){
-//                moveIsValid = Boolean.TRUE;
-//                break;
-//            }
-//        }
-//        if (!moveIsValid) {
-//            String invalidMoveReturn = String.format("Invalid move: %s to %s", start, end);
-//            invalidMoveReturn += promoPiece == null ? "" : String.format(" with promo piece %s", promoPiece.toString());
-//            return invalidMoveReturn;
-//        }
     }
     public String resignClient(String... params){
         getListOfGamesClient();  // will reflect up to date changes in game list
